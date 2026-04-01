@@ -16,24 +16,31 @@ Class {
 }
 
 { #category : 'as yet unclassified' }
-Expense class >> description: aString totalAmount: aMoney payments: aCollectionOfPayments 
-    splitRule: aSplitRule gifts: aCollectionOfGifts date: aDate [
-    | expense givenByPayer |
-    self validatePayments: aCollectionOfPayments totalAmount: aMoney.
-    expense := self new
-        id:          UUID new asString;
-        description: aString;
-        totalAmount: aMoney;
-        payments:    aCollectionOfPayments asOrderedCollection;
-        splitRule:   aSplitRule;
-        gifts:       aCollectionOfGifts asOrderedCollection;
-        date:        aDate;
-        tags:        Set new;
-        yourself.
-    givenByPayer := Dictionary new.
-    aCollectionOfGifts do: [ :g | 
-        g validateIn: expense givenByPayer: givenByPayer ].
-    ^ expense
+Expense class >> description: aString totalAmount: aMoney payments: aCollectionOfPayments splitRule: aSplitRule gifts: aCollectionOfGifts date: aDate [
+
+	| expense givenByPayer |
+	self validateDescription: aString.
+	self validatePayments: aCollectionOfPayments totalAmount: aMoney.
+	expense := self new
+		           id: UUID new asString;
+		           description: aString;
+		           totalAmount: aMoney;
+		           payments: aCollectionOfPayments asOrderedCollection;
+		           splitRule: aSplitRule;
+		           gifts: aCollectionOfGifts asOrderedCollection;
+		           date: aDate;
+		           tags: Set new;
+		           yourself.
+	givenByPayer := Dictionary new.
+	aCollectionOfGifts do: [ :g |
+		g validateIn: expense givenByPayer: givenByPayer ].
+	^ expense
+]
+
+{ #category : 'as yet unclassified' }
+Expense class >> validateDescription: aString [
+    (aString isNil or: [ aString trim isEmpty ])
+        ifTrue: [ Error signal: 'Description cannot be blank' ]
 ]
 
 { #category : 'as yet unclassified' }
