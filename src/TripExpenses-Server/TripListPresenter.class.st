@@ -6,16 +6,10 @@ I render the View when the Model changes (via valueChanged → renderView
 Class {
 	#name : 'TripListPresenter',
 	#superclass : 'CpPresenter',
-	#category : 'TripExpenses-Server',
-	#package : 'TripExpenses-Server'
+	#category : 'TripExpenses-Server-TripList',
+	#package : 'TripExpenses-Server',
+	#tag : 'TripList'
 }
-
-{ #category : 'as yet unclassified' }
-TripListPresenter class >> onApp: aTripExpensesServerApp [ 
-	^ self new
-		app: aTripExpensesServerApp;
-		yourself
-]
 
 { #category : 'rendering' }
 TripListPresenter >> onCreateRequested: anAnnouncement [
@@ -39,20 +33,20 @@ TripListPresenter >> onShowFormRequested [
 
 { #category : 'rendering' }
 TripListPresenter >> onTripSelected: anAnnouncement [
-	"Délègue la navigation au presenter parent (l application)"
-	self parent ifNotNil: [ :p |
-		p navigateToTrip: anAnnouncement tripId ]
+	"self application donne accès à TripExpensesApplication depuis n importe quel presenter"
+	self application navigateToTrip: anAnnouncement tripId
 ]
 
 { #category : 'rendering' }
 TripListPresenter >> renderView [
 	"Envoie uniquement des String/Boolean à la vue directe.
 	 Les TripItemModel sont rendus via des child presenters — pas de collection envoyée à la vue."
+
 	self
 		renderAllChildViewsForModels: self model trips
 		atSlotNamed: #trips.
 	self view
-		renderErrorMessage:   (self model errorMessage ifNil: [ '' ]);
+		renderErrorMessage: (self model errorMessage ifNil: [ 'Welcome' ]);
 		renderShowCreateForm: self model showingCreateForm
 ]
 

@@ -67,7 +67,7 @@ TripDetailModelTest >> testAddExpenseHidesForm [
 { #category : 'running' }
 TripDetailModelTest >> testAddExpenseIsATripExpenseItemModel [
 	self addExpenseAmount: 60.
-	self assert: (model expenses first isKindOf: TripExpenseItemModel)
+	self assert: (model expenses first isKindOf: TripExpenseExpenseItemModel)
 ]
 
 { #category : 'running' }

@@ -5,8 +5,9 @@ Class {
 		'participantId',
 		'name'
 	],
-	#category : 'TripExpenses-Server',
-	#package : 'TripExpenses-Server'
+	#category : 'TripExpenses-Server-TripParticipant',
+	#package : 'TripExpenses-Server',
+	#tag : 'TripParticipant'
 }
 
 { #category : 'instance creation' }

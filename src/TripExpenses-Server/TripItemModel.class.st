@@ -12,8 +12,9 @@ Class {
 		'participantCount',
 		'totalExpenses'
 	],
-	#category : 'TripExpenses-Server',
-	#package : 'TripExpenses-Server'
+	#category : 'TripExpenses-Server-TripItem',
+	#package : 'TripExpenses-Server',
+	#tag : 'TripItem'
 }
 
 { #category : 'instance creation' }

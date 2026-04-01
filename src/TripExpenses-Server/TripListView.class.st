@@ -7,8 +7,9 @@ I announce user actions to the Presenter via serverAnnounce
 Class {
 	#name : 'TripListView',
 	#superclass : 'CpView',
-	#category : 'TripExpenses-Server',
-	#package : 'TripExpenses-Server'
+	#category : 'TripExpenses-Server-TripList',
+	#package : 'TripExpenses-Server',
+	#tag : 'TripList'
 }
 
 { #category : 'web resources' }

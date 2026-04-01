@@ -7,8 +7,9 @@ Class {
 		'errorMessage',
 		'showingCreateForm'
 	],
-	#category : 'TripExpenses-Server',
-	#package : 'TripExpenses-Server'
+	#category : 'TripExpenses-Server-TripList',
+	#package : 'TripExpenses-Server',
+	#tag : 'TripList'
 }
 
 { #category : 'as yet unclassified' }
@@ -17,11 +18,6 @@ TripListModel class >> onService: aTripExpensesServerApp [
 		service: aTripExpensesServerApp;
 		loadTrips;
 		yourself
-]
-
-{ #category : 'as yet unclassified' }
-TripListModel >> announceValueChanged [
-	self shouldBeImplemented.
 ]
 
 { #category : 'as yet unclassified' }

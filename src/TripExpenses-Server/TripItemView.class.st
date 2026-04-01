@@ -1,8 +1,9 @@
 Class {
 	#name : 'TripItemView',
 	#superclass : 'CpView',
-	#category : 'TripExpenses-Server',
-	#package : 'TripExpenses-Server'
+	#category : 'TripExpenses-Server-TripItem',
+	#package : 'TripExpenses-Server',
+	#tag : 'TripItem'
 }
 
 { #category : 'web resources' }

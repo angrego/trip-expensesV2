@@ -8,8 +8,9 @@ Class {
 	#instVars : [
 		'tripId'
 	],
-	#category : 'TripExpenses-Server',
-	#package : 'TripExpenses-Server'
+	#category : 'TripExpenses-Server-TripList',
+	#package : 'TripExpenses-Server',
+	#tag : 'TripList'
 }
 
 { #category : 'accessing' }

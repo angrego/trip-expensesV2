@@ -1,5 +1,5 @@
 Class {
-	#name : 'TripExpenseItemModel',
+	#name : 'TripExpenseExpenseItemModel',
 	#superclass : 'CpModel',
 	#instVars : [
 		'expenseId',
@@ -8,12 +8,13 @@ Class {
 		'currency',
 		'date'
 	],
-	#category : 'TripExpenses-Server',
-	#package : 'TripExpenses-Server'
+	#category : 'TripExpenses-Server-ExpenseItem',
+	#package : 'TripExpenses-Server',
+	#tag : 'ExpenseItem'
 }
 
 { #category : 'instance creation' }
-TripExpenseItemModel class >> fromDict: aDict currency: aCurrency [
+TripExpenseExpenseItemModel class >> fromDict: aDict currency: aCurrency [
 	^ self new
 		setId:          (aDict at: 'id')          "← 'id' pas 'expenseId'"
 		description:    (aDict at: 'description')
@@ -24,31 +25,31 @@ TripExpenseItemModel class >> fromDict: aDict currency: aCurrency [
 ]
 
 { #category : 'accessing' }
-TripExpenseItemModel >> amount [ ^ amount
+TripExpenseExpenseItemModel >> amount [ ^ amount
 ]
 
 { #category : 'accessing' }
-TripExpenseItemModel >> currency [ ^ currency
+TripExpenseExpenseItemModel >> currency [ ^ currency
 ]
 
 { #category : 'accessing' }
-TripExpenseItemModel >> date [ ^ date
+TripExpenseExpenseItemModel >> date [ ^ date
 ]
 
 { #category : 'accessing' }
-TripExpenseItemModel >> description [ ^ description
+TripExpenseExpenseItemModel >> description [ ^ description
 ]
 
 { #category : 'accessing' }
-TripExpenseItemModel >> expenseId [ ^ expenseId
+TripExpenseExpenseItemModel >> expenseId [ ^ expenseId
 ]
 
 { #category : 'testing' }
-TripExpenseItemModel >> preferredPresenterClass [ ^ TripExpenseItemPresenter
+TripExpenseExpenseItemModel >> preferredPresenterClass [ ^ TripExpenseItemPresenter
 ]
 
 { #category : 'initialization' }
-TripExpenseItemModel >> setId: anId description: aDesc amount: anAmount currency: aCurrency date: aDate [
+TripExpenseExpenseItemModel >> setId: anId description: aDesc amount: anAmount currency: aCurrency date: aDate [
 	expenseId   := anId.
 	description := aDesc.
 	amount      := anAmount.

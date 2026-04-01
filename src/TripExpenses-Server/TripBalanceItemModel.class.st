@@ -6,8 +6,9 @@ Class {
 		'amount',
 		'currency'
 	],
-	#category : 'TripExpenses-Server',
-	#package : 'TripExpenses-Server'
+	#category : 'TripExpenses-Server-Balance',
+	#package : 'TripExpenses-Server',
+	#tag : 'Balance'
 }
 
 { #category : 'instance creation' }

@@ -18,8 +18,9 @@ Class {
 		'showingExpenseForm',
 		'errorMessage'
 	],
-	#category : 'TripExpenses-Server',
-	#package : 'TripExpenses-Server'
+	#category : 'TripExpenses-Server-TripDetail',
+	#package : 'TripExpenses-Server',
+	#tag : 'TripDetail'
 }
 
 { #category : 'as yet unclassified' }
@@ -131,7 +132,7 @@ TripDetailModel >> loadTrip [
 		TripParticipantModel fromDict: d ].
 	expenses := trip at: 'expenses' ifAbsent: [ #() ].
 	expenses := expenses collect: [ :d |
-		TripExpenseItemModel fromDict: d currency: currency ].
+		TripExpenseExpenseItemModel fromDict: d currency: currency ].
 	balances := (trip at: 'balances') collect: [ :d |
 		TripBalanceItemModel fromDict: d ].
 	settlements := (trip at: 'settlements') collect: [ :d |

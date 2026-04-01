@@ -1,12 +1,19 @@
 Class {
 	#name : 'TripExpensesServerApp',
-	#superclass : 'CpWebApplication',
+	#superclass : 'CpServerApplication',
 	#instVars : [
 		'service'
 	],
-	#category : 'TripExpenses-Server',
-	#package : 'TripExpenses-Server'
+	#category : 'TripExpenses-Server-TripExpenseApplication',
+	#package : 'TripExpenses-Server',
+	#tag : 'TripExpenseApplication'
 }
+
+{ #category : 'accessing' }
+TripExpensesServerApp class >> app [
+
+	^ #ServeurApp
+]
 
 { #category : 'instance creation' }
 TripExpensesServerApp class >> default [

@@ -5,14 +5,15 @@ When clicked I tell my parent (TripListPresenter) which trip was selected.
 Class {
 	#name : 'TripItemPresenter',
 	#superclass : 'CpPresenter',
-	#category : 'TripExpenses-Server',
-	#package : 'TripExpenses-Server'
+	#category : 'TripExpenses-Server-TripItem',
+	#package : 'TripExpenses-Server',
+	#tag : 'TripItem'
 }
 
 { #category : 'rendering' }
 TripItemPresenter >> onClicked [
 	"Je connais mon modèle — je remonte l annonce avec le tripId au parent"
-	self parent onTripSelected: (TripListTripSelected tripId: self model tripId)
+self application navigateToTrip: self model tripId
 ]
 
 { #category : 'rendering' }
