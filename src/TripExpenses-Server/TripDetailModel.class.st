@@ -109,39 +109,42 @@ TripDetailModel >> expenses [
 { #category : 'operations' }
 TripDetailModel >> hideExpenseForm [
 	showingExpenseForm := false.
-	errorMessage       := nil.
+	errorMessage := nil.
 	self valueChanged
 ]
 
 { #category : 'initialization' }
 TripDetailModel >> initialize [
 	super initialize.
-	participants       := OrderedCollection new.
-	expenses           := OrderedCollection new.
-	balances           := OrderedCollection new.
-	settlements        := OrderedCollection new.
+	participants := OrderedCollection new.
+	expenses := OrderedCollection new.
+	balances := OrderedCollection new.
+	settlements := OrderedCollection new.
 	showingExpenseForm := false.
-	errorMessage       := nil
+	errorMessage := nil
 ]
 
 { #category : 'operations' }
 TripDetailModel >> loadTrip [
-	"Charge le voyage depuis le service domaine.
-	 Chaque objet domaine est converti en sous-CpModel via les factories fromXxx:."
+	"Charge le voyage depuis le service domaine	 Chaque objet domaine est converti en sous-CpModel via les factories fromXxx:."
 	| trip |
-	trip          := service findTrip: tripId.
-	tripName      := trip name.
-	currency      := trip currency.
+	trip := service findTrip: tripId.
+	tripName := trip name.
+	currency := trip currency.
 	totalExpenses := trip totalExpenses amount printString.
-	participants  := trip participants collect: [ :p |
-		TripParticipantModel fromParticipant: p ].
-	expenses      := trip expenses collect: [ :e |
-		TripExpenseExpenseItemModel fromExpense: e currency: currency ].
-	balances      := trip balances associations collect: [ :assoc |
-		TripBalanceItemModel fromParticipant: assoc key money: assoc value ].
-	settlements   := trip settlements collect: [ :s |
-		TripSettlementItemModel fromSettlement: s ].
-	errorMessage  := nil.
+	participants := trip participants collect: [ :p |
+		                TripParticipantModel fromParticipant: p ].
+	expenses := trip expenses collect: [ :e |
+		            TripExpenseExpenseItemModel
+			            fromExpense: e
+			            currency: currency ].
+	balances := trip balances associations collect: [ :assoc |
+		            TripBalanceItemModel
+			            fromParticipant: assoc key
+			            money: assoc value ].
+	settlements := trip settlements collect: [ :s |
+		               TripSettlementItemModel fromSettlement: s ].
+	errorMessage := nil.
 	self valueChanged
 ]
 

@@ -1,6 +1,7 @@
 "
 Je rends un seul TripItemModel.
-Quand l utilisateur clique, je navigue directement via self application — chemin unique.
+Quand l utilisateur clique, je navigue via self application navigateToTrip:
+qui delegue a TripAppModel navigateToTrip: qui annonce valueChanged.
 "
 Class {
 	#name : 'TripItemPresenter',
@@ -10,27 +11,22 @@ Class {
 	#tag : 'TripItem'
 }
 
-{ #category : 'rendering' }
+{ #category : 'event handling' }
 TripItemPresenter >> onClicked [
-	"Chemin UNIQUE de navigation vers le détail.
-	 TripListPresenter ne gère plus TripListTripSelected (supprimé)."
 	self application navigateToTrip: self model tripId
 ]
 
 { #category : 'rendering' }
 TripItemPresenter >> renderView [
 	self view
-		renderTripName:       self model name
-		currency:             self model currency
-		participantCount:     self model participantCount printString
-		totalExpenses:        self model totalExpenses printString
+		renderTripName: self model name
+		currency: self model currency
+		participantCount: self model participantCount printString
+		totalExpenses: self model totalExpenses printString
 ]
 
 { #category : 'rendering' }
 TripItemPresenter >> viewCreated [
 	super viewCreated.
-	self view
-		when: TripItemClicked
-		send: #onClicked
-		to:   self
+	self view when: TripItemClicked send: #onClicked to: self
 ]

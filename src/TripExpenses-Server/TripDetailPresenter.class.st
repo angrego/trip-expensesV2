@@ -1,7 +1,8 @@
 "
-Je rends le détail d un seul voyage.
-J utilise des child presenters pour participants, dépenses, balances et règlements.
-Le bouton Retour appelle self application navigateToList.
+Je rends le detail d un seul voyage.
+J utilise des child presenters pour participants, depenses, balances et reglements.
+Le bouton Retour delegue via self application navigateToList
+qui delegue a TripAppModel navigateToList qui annonce valueChanged.
 "
 Class {
 	#name : 'TripDetailPresenter',
@@ -13,8 +14,6 @@ Class {
 
 { #category : 'private' }
 TripDetailPresenter >> buildParticipantOptionsString [
-	"Encode les participants comme String pour la vue.
-	 Format : 'id1:Alice|id2:Bob' — la vue split pour construire le select."
 	^ '|' join: (self model participants collect: [ :p |
 		p participantId , ':' , p name ])
 ]
@@ -22,8 +21,8 @@ TripDetailPresenter >> buildParticipantOptionsString [
 { #category : 'event handling' }
 TripDetailPresenter >> onAddExpense: anAnnouncement [
 	| amount allParticipantIds |
-	amount             := anAnnouncement amountString asNumber.
-	allParticipantIds  := self model participants collect: [ :p | p participantId ].
+	amount            := anAnnouncement amountString asNumber.
+	allParticipantIds := self model participants collect: [ :p | p participantId ].
 	self model
 		addExpenseDescription: anAnnouncement description
 		amount:                amount
@@ -33,7 +32,6 @@ TripDetailPresenter >> onAddExpense: anAnnouncement [
 
 { #category : 'event handling' }
 TripDetailPresenter >> onBackRequested [
-	"Retour vers la liste — chemin unique via l application."
 	self application navigateToList
 ]
 
@@ -50,13 +48,12 @@ TripDetailPresenter >> onShowExpenseForm [
 { #category : 'rendering' }
 TripDetailPresenter >> renderView [
 	self view
-		renderTripName:       self model tripName;
-		renderCurrency:       self model currency;
-		renderTotalExpenses:  self model totalExpenses;
-		renderErrorMessage:   (self model errorMessage ifNil: [ '' ]);
-		renderShowExpenseForm: self model showingExpenseForm;
+		renderTripName:           self model tripName;
+		renderCurrency:           self model currency;
+		renderTotalExpenses:      self model totalExpenses;
+		renderErrorMessage:       (self model errorMessage ifNil: [ '' ]);
+		renderShowExpenseForm:    self model showingExpenseForm;
 		renderParticipantOptions: self buildParticipantOptionsString.
-
 	self
 		renderAllChildViewsForModels: self model participants
 		atSlotNamed: #participants.
@@ -75,8 +72,8 @@ TripDetailPresenter >> renderView [
 TripDetailPresenter >> viewCreated [
 	super viewCreated.
 	self view
-		when: TripDetailBackRequested             send: #onBackRequested       to: self;
-		when: TripDetailShowExpenseFormRequested  send: #onShowExpenseForm     to: self;
-		when: TripDetailHideExpenseFormRequested  send: #onHideExpenseForm     to: self;
-		when: TripDetailAddExpenseRequested       send: #onAddExpense:         to: self
+		when: TripDetailBackRequested            send: #onBackRequested  to: self;
+		when: TripDetailShowExpenseFormRequested send: #onShowExpenseForm to: self;
+		when: TripDetailHideExpenseFormRequested send: #onHideExpenseForm to: self;
+		when: TripDetailAddExpenseRequested      send: #onAddExpense:     to: self
 ]

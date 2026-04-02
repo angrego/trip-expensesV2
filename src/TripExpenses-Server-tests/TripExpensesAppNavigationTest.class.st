@@ -1,15 +1,10 @@
 "
-Je teste TripExpensesApplication APRÈS refactorisation.
+Je teste la navigation de TripExpensesApplication via TripAppModel.
 
-Objectifs :
-  1. TripExpensesApplication tient un TripApplicationService, pas un TripExpensesServerApp.
-  2. La navigation navigateToTrip: / navigateToList est le SEUL chemin.
-  3. applicationModel retourne toujours le même TripDetailModel (pas de recréation).
-  4. preferredPresenterClass est défini sur les modèles, pas sur l application.
-
-Note : on ne teste PAS les annonces CP (announce: ValueChanged new) ici.
-CpMvpWebApplication ne répond pas à when:do: — les annonces sont vérifiées
-par le framework CP lui-même au runtime. On vérifie uniquement l état observable.
+Pattern CP correct :
+  - applicationModel retourne toujours le MEME TripAppModel.
+  - TripAppModel change d etat et annonce valueChanged (teste via CpModel).
+  - TripAppPresenter rerend selon isShowingDetail.
 "
 Class {
 	#name : 'TripExpensesAppNavigationTest',
@@ -28,77 +23,159 @@ TripExpensesAppNavigationTest >> setUp [
 	app     := TripExpensesApplication onService: service
 ]
 
+{ #category : 'tests - applicationModel' }
+TripExpensesAppNavigationTest >> testApplicationModelIsStable [
+"applicationModel retourne toujours le MEME objet — invariant CP fondamental."
+
+	self assert: app applicationModel == app applicationModel
+]
+
 { #category : 'tests - navigateToTrip' }
 TripExpensesAppNavigationTest >> testApplicationModelIsStableAfterNavigation [
 	"applicationModel doit retourner le MEME objet a chaque appel (pas de recréation)."
 	| trip first second |
-	trip   := service createTrip: 'Vacances' currency: 'EUR'.
+	trip := service createTrip: 'Vacances' currency: 'EUR'.
 	app navigateToTrip: trip id.
-	first  := app applicationModel.
+	first := app applicationModel.
 	second := app applicationModel.
 	self assert: first == second
 ]
 
-{ #category : 'tests - etat initial' }
-TripExpensesAppNavigationTest >> testInitialApplicationModelIsTripListModel [
-	self assert: (app applicationModel isKindOf: TripListModel)
+{ #category : 'tests - applicationModel' }
+TripExpensesAppNavigationTest >> testApplicationModelIsTripAppModel [
+	self assert: (app applicationModel isKindOf: TripAppModel)
+]
+
+{ #category : 'tests - applicationModel' }
+TripExpensesAppNavigationTest >> testApplicationModelPreferredPresenterClassIsTripAppPresenter [
+	self
+		assert: app applicationModel preferredPresenterClass
+		equals: TripAppPresenter
+]
+
+{ #category : 'tests - navigateToTrip' }
+TripExpensesAppNavigationTest >> testApplicationModelStableAfterNavigateToTrip [
+
+	| trip modelBefore modelAfter |
+	modelBefore := app applicationModel.
+	trip := service createTrip: 'Vacances' currency: 'EUR'.
+	app navigateToTrip: trip id.
+	modelAfter := app applicationModel.
+	self assert: modelBefore == modelAfter
 ]
 
 { #category : 'tests - etat initial' }
-TripExpensesAppNavigationTest >> testInitialPreferredPresenterClassIsTripListPresenter [
-	self assert: app applicationModel preferredPresenterClass equals: TripListPresenter
+TripExpensesAppNavigationTest >> testInitialCurrentTripDetailModelIsNil [
+	self assert: app applicationModel currentTripDetailModel isNil
+]
+
+{ #category : 'tests - etat initial' }
+TripExpensesAppNavigationTest >> testInitialTripListModelIsNotNil [
+
+	self assert: app applicationModel tripListModel isNotNil
+]
+
+{ #category : 'tests - etat initial' }
+TripExpensesAppNavigationTest >> testInitiallyNotShowingDetail [
+	self deny: app applicationModel isShowingDetail
 ]
 
 { #category : 'tests - navigateToList' }
-TripExpensesAppNavigationTest >> testNavigateToListPreferredPresenterClassIsTripListPresenter [
+TripExpensesAppNavigationTest >> testNavigateToListAnnouncesValueChanged [
+	"TripAppModel est un CpModel — on peut s abonner a valueChanged."
+
+| announced trip |
+	trip := service createTrip: 'Vacances' currency: 'EUR'.
+	app navigateToTrip: trip id.
+	announced := false.
+	app applicationModel when: ValueChanged do: [ announced := true ].
+	app navigateToList.
+	self assert: announced
+]
+
+{ #category : 'tests - navigateToList' }
+TripExpensesAppNavigationTest >> testNavigateToListClearsDetailModel [
+
 	| trip |
 	trip := service createTrip: 'Vacances' currency: 'EUR'.
 	app navigateToTrip: trip id.
 	app navigateToList.
-	self assert: app applicationModel preferredPresenterClass equals: TripListPresenter
+	self assert: app applicationModel currentTripDetailModel isNil
+]
+
+{ #category : 'tests - navigateToList' }
+TripExpensesAppNavigationTest >> testNavigateToListClearsShowingDetail [
+
+	| trip |
+	trip := service createTrip: 'Vacances' currency: 'EUR'.
+	app navigateToTrip: trip id.
+	app navigateToList.
+	self deny: app applicationModel isShowingDetail
 ]
 
 { #category : 'tests - navigateToList' }
 TripExpensesAppNavigationTest >> testNavigateToListReloadsTrips [
+
 	| trip |
 	trip := service createTrip: 'Vacances' currency: 'EUR'.
 	app navigateToTrip: trip id.
 	service createTrip: 'Nouveau voyage' currency: 'EUR'.
 	app navigateToList.
-	self assert: app applicationModel trips size equals: 2
+	self assert: app applicationModel tripListModel trips size equals: 2
+]
+
+{ #category : 'tests - navigateToTrip' }
+TripExpensesAppNavigationTest >> testNavigateToTripAnnouncesValueChanged [
+	"TripAppModel est un CpModel — on peut s abonner a valueChanged."
+
+	| announced trip |
+	trip := service createTrip: 'Vacances' currency: 'EUR'.
+	announced := false.
+	app applicationModel when: ValueChanged do: [ announced := true ].
+	app navigateToTrip: trip id.
+	self assert: announced
+]
+
+{ #category : 'tests - navigateToTrip' }
+TripExpensesAppNavigationTest >> testNavigateToTripCreatesDetailModel [
+
+| trip |
+	trip := service createTrip: 'Vacances' currency: 'EUR'.
+	app navigateToTrip: trip id.
+	self assert:
+		(app applicationModel currentTripDetailModel isKindOf:
+			 TripDetailModel)
+]
+
+{ #category : 'tests - navigateToTrip' }
+TripExpensesAppNavigationTest >> testNavigateToTripDetailModelHasCorrectTripId [
+
+	| trip |
+	trip := service createTrip: 'Vacances' currency: 'EUR'.
+	app navigateToTrip: trip id.
+	self
+		assert: app applicationModel currentTripDetailModel tripId
+		equals: trip id
+]
+
+{ #category : 'tests - navigateToTrip' }
+TripExpensesAppNavigationTest >> testNavigateToTripSetsShowingDetail [
+
+| trip |
+	trip := service createTrip: 'Vacances' currency: 'EUR'.
+	app navigateToTrip: trip id.
+	self assert: app applicationModel isShowingDetail
 ]
 
 { #category : 'tests - navigateToList' }
-TripExpensesAppNavigationTest >> testNavigateToListRestoresTripListModel [
-	| trip |
+TripExpensesAppNavigationTest >> testTripListModelIsStableAcrossNavigation [
+
+| listModelBefore trip |
+	listModelBefore := app applicationModel tripListModel.
 	trip := service createTrip: 'Vacances' currency: 'EUR'.
 	app navigateToTrip: trip id.
 	app navigateToList.
-	self assert: (app applicationModel isKindOf: TripListModel)
-]
-
-{ #category : 'tests - navigateToTrip' }
-TripExpensesAppNavigationTest >> testNavigateToTripChangesApplicationModelToTripDetailModel [
-	| trip |
-	trip := service createTrip: 'Vacances' currency: 'EUR'.
-	app navigateToTrip: trip id.
-	self assert: (app applicationModel isKindOf: TripDetailModel)
-]
-
-{ #category : 'tests - navigateToTrip' }
-TripExpensesAppNavigationTest >> testNavigateToTripModelHasCorrectTripId [
-	| trip |
-	trip := service createTrip: 'Vacances' currency: 'EUR'.
-	app navigateToTrip: trip id.
-	self assert: app applicationModel tripId equals: trip id
-]
-
-{ #category : 'tests - navigateToTrip' }
-TripExpensesAppNavigationTest >> testNavigateToTripPreferredPresenterClassIsTripDetailPresenter [
-	| trip |
-	trip := service createTrip: 'Vacances' currency: 'EUR'.
-	app navigateToTrip: trip id.
-	self assert: app applicationModel preferredPresenterClass equals: TripDetailPresenter
+	self assert: app applicationModel tripListModel == listModelBefore
 ]
 
 { #category : 'tests - navigateToList' }

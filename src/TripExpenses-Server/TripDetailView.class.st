@@ -84,13 +84,16 @@ TripDetailView class >> template [
 { #category : 'event handling' }
 TripDetailView >> handleAddExpense [
 	| desc amount payerId |
-	desc    := (self shadowedElementWithId: #'expense-desc')   propertyAt: 'value'.
-	amount  := (self shadowedElementWithId: #'expense-amount') propertyAt: 'value'.
-	payerId := (self shadowedElementWithId: #'expense-payer')  propertyAt: 'value'.
+	desc := (self shadowedElementWithId: #'expense-desc') propertyAt:
+		        'value'.
+	amount := (self shadowedElementWithId: #'expense-amount')
+		          propertyAt: 'value'.
+	payerId := (self shadowedElementWithId: #'expense-payer')
+		           propertyAt: 'value'.
 	self serverAnnounce: (TripDetailAddExpenseRequested
-		description:  desc
-		amountString: amount
-		payerId:      payerId)
+			 description: desc
+			 amountString: amount
+			 payerId: payerId)
 ]
 
 { #category : 'event handling' }
@@ -112,19 +115,29 @@ TripDetailView >> handleShowForm [
 TripDetailView >> initializeShadowRoot [
 	super initializeShadowRoot.
 	(self shadowedElementWithId: #'btn-back')
-		when: CpClickEvent basicPrimary send: #handleBack       to: self.
+		when: CpClickEvent basicPrimary
+		send: #handleBack
+		to: self.
 	(self shadowedElementWithId: #'btn-show-form')
-		when: CpClickEvent basicPrimary send: #handleShowForm   to: self.
+		when: CpClickEvent basicPrimary
+		send: #handleShowForm
+		to: self.
 	(self shadowedElementWithId: #'btn-add')
-		when: CpClickEvent basicPrimary send: #handleAddExpense to: self.
+		when: CpClickEvent basicPrimary
+		send: #handleAddExpense
+		to: self.
 	(self shadowedElementWithId: #'btn-cancel')
-		when: CpClickEvent basicPrimary send: #handleHideForm   to: self
+		when: CpClickEvent basicPrimary
+		send: #handleHideForm
+		to: self
 ]
 
 { #category : 'rendering' }
 TripDetailView >> renderCurrency: aCurrency [
+
 	(self shadowedElementWithId: #'trip-name')
-		setAttribute: 'data-currency' value: aCurrency
+		propertyAt: 'data-currency'
+		put: aCurrency.
 ]
 
 { #category : 'rendering' }
@@ -132,44 +145,57 @@ TripDetailView >> renderErrorMessage: aString [
 	| banner |
 	banner := self shadowedElementWithId: #'error-banner'.
 	aString isEmpty
-		ifTrue:  [ banner style: 'display:none'. banner textContent: '' ]
-		ifFalse: [ banner style: 'display:block'. banner textContent: aString ]
+		ifTrue: [
+				banner style: 'display:none'.
+				banner textContent: '' ]
+		ifFalse: [
+				banner style: 'display:block'.
+				banner textContent: aString ]
 ]
 
 { #category : 'rendering' }
 TripDetailView >> renderParticipantOptions: aString [
+
 	| select |
 	select := self shadowedElementWithId: #'expense-payer'.
 	select removeChildren.
 	aString isEmpty ifTrue: [ ^ self ].
 	(aString substrings: $|) do: [ :pair |
-		| parts option |
-		parts  := pair substrings: $:.
-		option := CpHtmlElement newWithTag: 'option'.
-		option setAttribute: 'value' value: parts first.
-		option textContent: parts last.
-		select appendChild: option ]
+			| parts option |
+			parts := pair substrings: $:.
+			option := CpHtmlElement newWithTag: 'option'.
+			option propertyAt: 'value' put: parts first.
+			option textContent: parts last.
+			select appendChild: option ]
 ]
 
 { #category : 'rendering' }
 TripDetailView >> renderShowExpenseForm: aBoolean [
 	| form btn |
 	form := self shadowedElementWithId: #'expense-form'.
-	btn  := self shadowedElementWithId: #'btn-show-form'.
+	btn := self shadowedElementWithId: #'btn-show-form'.
 	aBoolean
-		ifTrue:  [
-			form style: 'display:block'. btn style: 'display:none'.
-			(self shadowedElementWithId: #'expense-desc')   propertyAt: 'value' put: ''.
-			(self shadowedElementWithId: #'expense-amount') propertyAt: 'value' put: '' ]
+		ifTrue: [
+				form style: 'display:block'.
+				btn style: 'display:none'.
+				(self shadowedElementWithId: #'expense-desc')
+					propertyAt: 'value'
+					put: ''.
+				(self shadowedElementWithId: #'expense-amount')
+					propertyAt: 'value'
+					put: '' ]
 		ifFalse: [
-			form style: 'display:none'. btn style: 'display:block' ]
+				form style: 'display:none'.
+				btn style: 'display:block' ]
 ]
 
 { #category : 'rendering' }
 TripDetailView >> renderTotalExpenses: aTotal [
+
 	| currency meta |
+	currency :=''.
 	currency := (self shadowedElementWithId: #'trip-name')
-		getAttribute: 'data-currency' ifAbsent: [ '' ].
+		            propertyAt: 'data-currency'.
 	meta := self shadowedElementWithId: #'trip-meta'.
 	meta textContent: 'Total : ' , aTotal , ' ' , currency
 ]

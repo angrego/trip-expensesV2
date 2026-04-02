@@ -58,30 +58,33 @@ TripExpensesServerApp class >> withRepository: aRepository [
 { #category : 'accessing' }
 TripExpensesServerApp >> application [
 	"L application MVP de cette session — vit côté serveur."
-	
 	^ application
 ]
 
 { #category : 'initialization' }
 TripExpensesServerApp >> initialize [
-	"CP appelle initialize à chaque nouvelle session navigateur.	 On crée le service avec le repository de production,	 puis l application MVP qui orchestre Models et Presenters côté serveur."
-
+	"CP appelle initialize à chaque nouvelle session navigateur.
+	 On crée le service avec le repository de production,
+	 puis l application MVP qui orchestre Models et Presenters côté serveur."
 	super initialize.
 	self initializeWithRepository: STONTripRepository default
 ]
 
 { #category : 'initialization' }
 TripExpensesServerApp >> initializeWithRepository: aRepository [
-	"Point d initialisation injectable — repository libre en test,	 STONTripRepository en production."
-	application := TripExpensesApplication onService:
-		               (TripApplicationService withRepository: aRepository)
+	"Point d initialisation injectable — repository libre en test,
+	 STONTripRepository en production."
+	application := TripExpensesApplication
+		onService: (TripApplicationService withRepository: aRepository)
 ]
 
 { #category : 'installing' }
 TripExpensesServerApp >> install [
 	"CP appelle install après initialize, avant de répondre au navigateur.
- On installe côté client (WebAssembly) les classes qui doivent  s'exécuter dans le navigateur : Views et Announcements.  Models, Presenters et le service restent dans l image Pharo."
-
+	 On installe côté client (WebAssembly) les classes qui doivent
+	 s'exécuter dans le navigateur : Views et Announcements.
+	 Models, Presenters et le service restent dans l image Pharo."
+	super install.
 	self
 		installViews;
 		installAnnouncements
@@ -89,8 +92,8 @@ TripExpensesServerApp >> install [
 
 { #category : 'installing' }
 TripExpensesServerApp >> installAnnouncements [
-	"Les Announcements émises par serverAnnounce: dans les Views doivent exister côté client — on les installe dans le navigateur."
-
+	"Les Announcements émises par serverAnnounce: dans les Views
+	 doivent exister côté client — on les installe dans le navigateur."
 	self
 		installClass: TripListShowFormRequested;
 		installClass: TripListHideFormRequested;
@@ -104,9 +107,9 @@ TripExpensesServerApp >> installAnnouncements [
 
 { #category : 'installing' }
 TripExpensesServerApp >> installViews [
-"Toutes les CpView subclasses — elles s'exécutent dans le navigateur."
-
+	"Toutes les CpView subclasses — elles s'exécutent dans le navigateur."
 	self
+		installClass: TripAppView;
 		installClass: TripListView;
 		installClass: TripItemView;
 		installClass: TripDetailView;
