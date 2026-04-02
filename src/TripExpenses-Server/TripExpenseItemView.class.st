@@ -62,8 +62,9 @@ TripExpenseItemView >> renderDescription: aDesc amount: anAmount currency: aCurr
 
 	(self shadowedElementWithId: #desc) textContent: aDesc.
 	(self shadowedElementWithId: #date) textContent: aDate.
-	(self shadowedElementWithId: #payer) textContent: aPayerName .
-	(self shadowedElementWithId: #beneficiaries) textContent: aBeneficiaryNames .
+	(self shadowedElementWithId: #payer) textContent: 'Payé: ',aPayerName.
+	(self shadowedElementWithId: #beneficiaries) textContent: 'Beneficiaires: ',
+		aBeneficiaryNames.
 	(self shadowedElementWithId: #amount) textContent:
 		anAmount , ' ' , aCurrency
 ]
