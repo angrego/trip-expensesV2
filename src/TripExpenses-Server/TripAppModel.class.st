@@ -31,8 +31,8 @@ TripAppModel >> currentTripDetailModel [
 
 { #category : 'initialization' }
 TripAppModel >> initializeWithService: aTripApplicationService [
-	service               := aTripApplicationService.
-	tripListModel         := TripListModel onService: service.
+	service := aTripApplicationService.
+	tripListModel := TripListModel onService: service.
 	currentTripDetailModel := nil
 ]
 
@@ -50,7 +50,9 @@ TripAppModel >> navigateToList [
 
 { #category : 'navigation' }
 TripAppModel >> navigateToTrip: aTripId [
-	currentTripDetailModel := TripDetailModel onService: service tripId: aTripId.
+	currentTripDetailModel := TripDetailModel
+		                          onService: service
+		                          tripId: aTripId.
 	self valueChanged
 ]
 

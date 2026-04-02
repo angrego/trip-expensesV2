@@ -15,7 +15,7 @@ Class {
 TripListPresenter >> onCreateRequested: anAnnouncement [
 	self model
 		createTripNamed: anAnnouncement tripName
-		currency:        anAnnouncement currency
+		currency: anAnnouncement currency
 ]
 
 { #category : 'event handling' }
@@ -40,8 +40,8 @@ TripListPresenter >> renderView [
 		renderAllChildViewsForModels: self model trips
 		atSlotNamed: #trips.
 	self view
-		renderErrorMessage:    (self model errorMessage ifNil: [ '' ]);
-		renderShowCreateForm:  self model showingCreateForm
+		renderErrorMessage: (self model errorMessage ifNil: [ '' ]);
+		renderShowCreateForm: self model showingCreateForm
 ]
 
 { #category : 'rendering' }
@@ -50,5 +50,5 @@ TripListPresenter >> viewCreated [
 	self view
 		when: TripListShowFormRequested send: #onShowFormRequested to: self;
 		when: TripListHideFormRequested send: #onHideFormRequested to: self;
-		when: TripListCreateRequested   send: #onCreateRequested:  to: self
+		when: TripListCreateRequested send: #onCreateRequested: to: self
 ]

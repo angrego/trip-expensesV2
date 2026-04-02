@@ -17,7 +17,8 @@ Class {
 		'balances',
 		'settlements',
 		'showingExpenseForm',
-		'errorMessage'
+		'errorMessage',
+		'addParticipantModel'
 	],
 	#category : 'TripExpenses-Server-TripDetail',
 	#package : 'TripExpenses-Server',
@@ -36,49 +37,59 @@ TripDetailModel class >> onService: aTripApplicationService tripId: anId [
 
 { #category : 'operations' }
 TripDetailModel >> addExpenseDescription: aDescription amount: anAmount payerId: aPayerId participantIds: aCollectionOfIds [
-	"Valide, construit l'Expense directement depuis les objets domaine,
-	 l'enregistre via le service, puis recharge le voyage.
-	 Aucun Dictionary JSON — on parle directement au domaine."
+	"Valide, construit l'Expense directement depuis les objets domaine l'enregistre via le service, puis recharge le voyage. Aucun Dictionary JSON — on parle directement au domaine."
 	| trip payer payments splitRule expense |
-
 	(aDescription isNil or: [ aDescription trim isEmpty ]) ifTrue: [
-		errorMessage := 'La description ne peut pas être vide'.
-		self valueChanged. ^ self ].
+			errorMessage := 'La description ne peut pas être vide'.
+			self valueChanged.
+			^ self ].
 	(anAmount isNil or: [ anAmount <= 0 ]) ifTrue: [
-		errorMessage := 'Le montant doit être positif'.
-		self valueChanged. ^ self ].
+			errorMessage := 'Le montant doit être positif'.
+			self valueChanged.
+			^ self ].
 	(aCollectionOfIds isNil or: [ aCollectionOfIds isEmpty ]) ifTrue: [
-		errorMessage := 'Il faut au moins un participant'.
-		self valueChanged. ^ self ].
+			errorMessage := 'Il faut au moins un participant'.
+			self valueChanged.
+			^ self ].
 
-	trip   := service findTrip: tripId.
-	payer  := trip participants
-		detect: [ :p | p id value = aPayerId ]
-		ifNone: [ errorMessage := 'Payeur introuvable'. self valueChanged. ^ self ].
+	trip := service findTrip: tripId.
+	payer := trip participants
+		         detect: [ :p | p id value = aPayerId ]
+		         ifNone: [
+				         errorMessage := 'Payeur introuvable'.
+				         self valueChanged.
+				         ^ self ].
 
-	payments  := { Payment
-		participant: payer
-		amount:      (Money amount: anAmount currency: currency) }.
+	payments := { (Payment
+		             participant: payer
+		             amount: (Money amount: anAmount currency: currency)) }.
 
 	splitRule := EqualSplitRule among:
-		(aCollectionOfIds collect: [ :id |
-			| p |
-			p := trip participants
-				detect: [ :p2 | p2 id value = id ]
-				ifNone: [ Error signal: 'Participant introuvable : ' , id ].
-			ParticipantWeight participant: p ]).
+		             (aCollectionOfIds collect: [ :id |
+				              | p |
+				              p := trip participants
+					                   detect: [ :p2 | p2 id value = id ]
+					                   ifNone: [
+					                   Error signal:
+						                   'Participant introuvable : ' , id ].
+				              ParticipantWeight participant: p ]).
 
 	expense := Expense
-		description: aDescription trim
-		totalAmount:  (Money amount: anAmount currency: currency)
-		payments:     payments
-		splitRule:    splitRule
-		gifts:        #()
-		date:         Date today.
+		           description: aDescription trim
+		           totalAmount: (Money amount: anAmount currency: currency)
+		           payments: payments
+		           splitRule: splitRule
+		           gifts: #(  )
+		           date: Date today.
 
 	service addExpense: expense toTrip: tripId.
 	showingExpenseForm := false.
 	self loadTrip
+]
+
+{ #category : 'accessing' }
+TripDetailModel >> addParticipantModel [
+	^ addParticipantModel
 ]
 
 { #category : 'accessing' }
@@ -121,12 +132,13 @@ TripDetailModel >> initialize [
 	balances := OrderedCollection new.
 	settlements := OrderedCollection new.
 	showingExpenseForm := false.
-	errorMessage := nil
+	errorMessage := nil.
+	addParticipantModel := nil
 ]
 
 { #category : 'operations' }
 TripDetailModel >> loadTrip [
-	"Charge le voyage depuis le service domaine	 Chaque objet domaine est converti en sous-CpModel via les factories fromXxx:."
+	"Charge le voyage depuis le service domaine. Chaque objet domaine est converti en sous-CpModel via les factories fromXxx:."
 	| trip |
 	trip := service findTrip: tripId.
 	tripName := trip name.
@@ -159,6 +171,18 @@ TripDetailModel >> preferredPresenterClass [
 ]
 
 { #category : 'accessing' }
+TripDetailModel >> removeExpenseId: anExpenseId [
+	"Supprime la depense par son id via le service, puis recharge le voyage."
+	[ service removeExpense: anExpenseId fromTrip: tripId ]
+		on: Error
+		do: [ :e |
+				errorMessage := e messageText.
+				self valueChanged.
+				^ self ].
+	self loadTrip
+]
+
+{ #category : 'accessing' }
 TripDetailModel >> service [
 
 	^ service
@@ -177,7 +201,7 @@ TripDetailModel >> settlements [
 { #category : 'operations' }
 TripDetailModel >> showExpenseForm [
 	showingExpenseForm := true.
-	errorMessage       := nil.
+	errorMessage := nil.
 	self valueChanged
 ]
 
@@ -198,7 +222,10 @@ TripDetailModel >> tripId [
 
 { #category : 'private - setting' }
 TripDetailModel >> tripId: anId [
-	tripId := anId
+	tripId := anId.
+	addParticipantModel := TripAddParticipantModel
+		                       onService: service
+		                       tripId: anId
 ]
 
 { #category : 'accessing' }

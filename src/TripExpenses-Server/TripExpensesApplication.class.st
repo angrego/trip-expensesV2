@@ -20,35 +20,41 @@ Class {
 
 { #category : 'accessing' }
 TripExpensesApplication class >> app [
-	^ #'Voyages'
+	^ #Voyages
 ]
 
 { #category : 'instance creation' }
 TripExpensesApplication class >> onService: aTripApplicationService [
 	^ self basicNew
-		initializeWithService: aTripApplicationService;
-		yourself
+		  initializeWithService: aTripApplicationService;
+		  yourself
 ]
 
 { #category : 'instance creation' }
 TripExpensesApplication class >> withSampleData [
 	| repo service trip alice bob charlie rule |
-	repo    := InMemoryTripRepository new.
+	repo := InMemoryTripRepository new.
 	service := TripApplicationService withRepository: repo.
-	trip    := service createTrip: 'Vacances ete 2026' currency: 'EUR'.
-	alice   := service addParticipant: 'Alice'   toTrip: trip id.
-	bob     := service addParticipant: 'Bob'     toTrip: trip id.
+	trip := service createTrip: 'Vacances ete 2026' currency: 'EUR'.
+	alice := service addParticipant: 'Alice' toTrip: trip id.
+	bob := service addParticipant: 'Bob' toTrip: trip id.
 	charlie := service addParticipant: 'Charlie' toTrip: trip id.
-	trip    := service findTrip: trip id.
-	rule    := EqualSplitRule among: {
-		ParticipantWeight participant: alice.
-		ParticipantWeight participant: bob.
-		ParticipantWeight participant: charlie }.
-	service addExpense: (Expense
-		description: 'Restaurant'
-		totalAmount: (Money amount: 90 currency: 'EUR')
-		payments: { Payment participant: alice amount: (Money amount: 90 currency: 'EUR') }
-		splitRule: rule gifts: {} date: Date today) toTrip: trip id.
+	trip := service findTrip: trip id.
+	rule := EqualSplitRule among: {
+			        (ParticipantWeight participant: alice).
+			        (ParticipantWeight participant: bob).
+			        (ParticipantWeight participant: charlie) }.
+	service
+		addExpense: (Expense
+				 description: 'Restaurant'
+				 totalAmount: (Money amount: 90 currency: 'EUR')
+				 payments: { (Payment
+						  participant: alice
+						  amount: (Money amount: 90 currency: 'EUR')) }
+				 splitRule: rule
+				 gifts: {  }
+				 date: Date today)
+		toTrip: trip id.
 	^ self onService: service
 ]
 

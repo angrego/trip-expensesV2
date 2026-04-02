@@ -50,33 +50,34 @@ TripDetailView class >> template [
 	<div class="section">
 		<div class="section-title">Participants</div>
 		<div class="participants-list"><slot name="participants"></slot></div>
+		<slot name="addParticipant"></slot>
 	</div>
 	<div class="section">
-		<div class="section-title">Dépenses</div>
+		<div class="section-title">Depenses</div>
 		<slot name="expenses"></slot>
 		<div id="expense-form" class="expense-form" style="display:none">
-			<h3>Nouvelle dépense</h3>
+			<h3>Nouvelle depense</h3>
 			<label>Description</label>
 			<input  id="expense-desc"   class="input"  type="text" placeholder="Ex : Restaurant">
 			<label>Montant</label>
 			<input  id="expense-amount" class="input"  type="number" min="0.01" step="0.01" placeholder="0.00">
-			<label>Payé par</label>
+			<label>Paye par</label>
 			<select id="expense-payer"  class="select"></select>
 			<div class="form-actions">
 				<button id="btn-add"    class="btn-primary">Ajouter</button>
 				<button id="btn-cancel" class="btn-secondary">Annuler</button>
 			</div>
 		</div>
-		<button id="btn-show-form" class="btn-primary">+ Ajouter une dépense</button>
+		<button id="btn-show-form" class="btn-primary">+ Ajouter une depense</button>
 	</div>
 	<div class="section">
 		<div class="section-title">Balances</div>
 		<slot name="balances"></slot>
 	</div>
 	<div class="section">
-		<div class="section-title">Règlements</div>
+		<div class="section-title">Reglements</div>
 		<slot name="settlements"></slot>
-		<div id="empty-settlements" class="empty">Tout le monde est quitte !</div>
+		<div id="empty-settlements" class="empty">Tout le monde est quitte !!</div>
 	</div>
 	'
 ]
@@ -134,10 +135,16 @@ TripDetailView >> initializeShadowRoot [
 
 { #category : 'rendering' }
 TripDetailView >> renderCurrency: aCurrency [
-
 	(self shadowedElementWithId: #'trip-name')
-		propertyAt: 'data-currency'
-		put: aCurrency.
+		attributeAt: 'data-currency'
+		put: aCurrency
+]
+
+{ #category : 'rendering' }
+TripDetailView >> renderEmptySettlements:aBoolean [
+	| empty |
+	empty := self shadowedElementWithId: #'empty-settlements'.
+	empty style: (aBoolean ifTrue: [ 'display:block' ] ifFalse: [ 'display:none' ])
 ]
 
 { #category : 'rendering' }
@@ -154,19 +161,18 @@ TripDetailView >> renderErrorMessage: aString [
 ]
 
 { #category : 'rendering' }
-TripDetailView >> renderParticipantOptions: aString [
-
+TripDetailView >> renderPayerOptions: aCollectionOfDicts [
+	"Recoit un Array de Dictionary { 'id' -> String. 'name' -> String }.
+	 Construit les <option> directement — pas de String encodee a decoder."
 	| select |
 	select := self shadowedElementWithId: #'expense-payer'.
 	select removeChildren.
-	aString isEmpty ifTrue: [ ^ self ].
-	(aString substrings: $|) do: [ :pair |
-			| parts option |
-			parts := pair substrings: $:.
-			option := CpHtmlElement newWithTag: 'option'.
-			option propertyAt: 'value' put: parts first.
-			option textContent: parts last.
-			select appendChild: option ]
+	aCollectionOfDicts do: [ :dict |
+		| option |
+		option := CpHtmlElement newWithTag: 'option'.
+		option attributeAt: 'value' put: (dict at: 'id').
+		option textContent: (dict at: 'name').
+		select appendChild: option ]
 ]
 
 { #category : 'rendering' }
@@ -193,9 +199,9 @@ TripDetailView >> renderShowExpenseForm: aBoolean [
 TripDetailView >> renderTotalExpenses: aTotal [
 
 	| currency meta |
-	currency :=''.
+	currency:=''.
 	currency := (self shadowedElementWithId: #'trip-name')
-		            propertyAt: 'data-currency'.
+		            attributeAt: 'data-currency'.
 	meta := self shadowedElementWithId: #'trip-meta'.
 	meta textContent: 'Total : ' , aTotal , ' ' , currency
 ]

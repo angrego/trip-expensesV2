@@ -58,8 +58,8 @@ TripSettlementItemModel >> preferredPresenterClass [
 { #category : 'private - setting' }
 TripSettlementItemModel >> setFrom: aFromName to: aToName amount: anAmount currency: aCurrency [
 	fromName := aFromName.
-	toName   := aToName.
-	amount   := anAmount printString.
+	toName := aToName.
+	amount := anAmount printString.
 	currency := aCurrency
 ]
 

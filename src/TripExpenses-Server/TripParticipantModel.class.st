@@ -47,5 +47,5 @@ TripParticipantModel >> preferredPresenterClass [
 { #category : 'private - setting' }
 TripParticipantModel >> setId: anId name: aName [
 	participantId := anId.
-	name          := aName
+	name := aName
 ]

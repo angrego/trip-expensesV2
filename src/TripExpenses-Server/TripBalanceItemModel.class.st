@@ -54,6 +54,6 @@ TripBalanceItemModel >> preferredPresenterClass [
 { #category : 'private - setting' }
 TripBalanceItemModel >> setName: aName amount: anAmount currency: aCurrency [
 	participantName := aName.
-	amount          := anAmount printString.
-	currency        := aCurrency
+	amount := anAmount printString.
+	currency := aCurrency
 ]

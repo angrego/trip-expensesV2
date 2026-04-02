@@ -125,6 +125,19 @@ Trip >> participants: aCollection [
 	participants :=aCollection 
 ]
 
+{ #category : 'accessing' }
+Trip >> removeExpense: anExpenseId [
+	"Supprime la depense identifiee par son id.
+	 Leve une erreur si la depense n appartient pas a ce voyage."
+
+	| found |
+	found := expenses
+		         detect: [ :e | e id = anExpenseId  ]
+		         ifNone: [ nil ].
+	found ifNil: [ Error signal: 'Expense not found: ' , anExpenseId  ].
+	expenses := expenses reject: [ :e | e id = anExpenseId ]
+]
+
 { #category : 'as yet unclassified' }
 Trip >> settlements [
 	^ TripSettlementService settleFor: self balances

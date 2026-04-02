@@ -35,6 +35,8 @@ TripBalanceItemView >> renderParticipantName: aName amount: anAmount currency: a
 	amountEl textContent: anAmount , ' ' , aCurrency.
 	cssClass := (anAmount includes: $-)
 		ifTrue:  [ 'amount negative' ]
-		ifFalse: [ anAmount = '0' ifTrue: [ 'amount zero' ] ifFalse: [ 'amount positive' ] ].
-	amountEl className: cssClass
+		ifFalse: [ anAmount = '0'
+			ifTrue:  [ 'amount zero' ]
+			ifFalse: [ 'amount positive' ] ].
+	amountEl propertyAt: 'class' put: cssClass
 ]

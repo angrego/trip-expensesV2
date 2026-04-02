@@ -10,6 +10,6 @@ Class {
 TripBalanceItemPresenter >> renderView [
 	self view
 		renderParticipantName: self model participantName
-		amount:                self model amount
-		currency:              self model currency
+		amount: self model amount
+		currency: self model currency
 ]

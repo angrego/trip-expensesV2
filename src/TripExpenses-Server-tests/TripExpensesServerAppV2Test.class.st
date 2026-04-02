@@ -54,7 +54,9 @@ TripExpensesServerAppV2Test >> testDoesNotRespondToHandleMessage [
 { #category : 'tests - session' }
 TripExpensesServerAppV2Test >> testMvpApplicationHasATripListModelInitially [
 	"Après initialisation, le modèle courant est une liste de voyages."
-	self assert: (serverApp application applicationModel isKindOf: TripListModel)
+
+	self assert:
+		(serverApp application applicationModel tripListModel isKindOf: TripListModel)
 ]
 
 { #category : 'tests - session' }
@@ -96,17 +98,21 @@ TripExpensesServerAppV2Test >> testTwoSessionsAreIndependent [
 
 { #category : 'tests - repository' }
 TripExpensesServerAppV2Test >> testTwoSessionsWithSharedRepositoryShareData [
-	"Deux sessions avec le MÊME repository voient les mêmes données —
-	 c'est le comportement de production (STONTripRepository partagé)."
+	"Deux sessions avec le MÊME repository voient les mêmes données — c'est le comportement de production (STONTripRepository partagé)."
+
 	| sharedRepo session1 session2 |
 	sharedRepo := InMemoryTripRepository new.
 	session1 := TripExpensesServerApp withRepository: sharedRepo.
 	session2 := TripExpensesServerApp withRepository: sharedRepo.
 	"Session 1 crée un voyage"
-	session1 application applicationModel createTripNamed: 'Vacances' currency: 'EUR'.
+	session1 application applicationModel tripListModel
+		createTripNamed: 'Vacances'
+		currency: 'EUR'.
 	"Session 2 recharge — doit voir le voyage créé par session 1"
-	session2 application applicationModel loadTrips.
-	self assert: session2 application applicationModel trips size equals: 1
+	session2 application applicationModel tripListModel loadTrips.
+	self
+		assert: session2 application applicationModel tripListModel trips size
+		equals: 1
 ]
 
 { #category : 'tests - rôle minimal' }
@@ -128,6 +134,7 @@ TripExpensesServerAppV2Test >> testUsesInstallClassForViews [
 { #category : 'tests - repository' }
 TripExpensesServerAppV2Test >> testWithRepositoryUsesGivenRepository [
 	"Les voyages créés via le service doivent être visibles via l application MVP."
+
 	| repo trip |
 	repo := InMemoryTripRepository new.
 	serverApp := TripExpensesServerApp withRepository: repo.
@@ -135,6 +142,8 @@ TripExpensesServerAppV2Test >> testWithRepositoryUsesGivenRepository [
 	trip := Trip name: 'Test' currency: 'EUR'.
 	repo save: trip.
 	"L application doit le voir via loadTrips"
-	serverApp application applicationModel loadTrips.
-	self assert: serverApp application applicationModel trips size equals: 1
+	serverApp application applicationModel tripListModel loadTrips.
+	self
+		assert: serverApp application applicationModel tripListModel trips size
+		equals: 1
 ]

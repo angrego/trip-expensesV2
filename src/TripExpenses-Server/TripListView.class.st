@@ -89,9 +89,12 @@ TripListView >> handleCancelClicked [
 { #category : 'event handling' }
 TripListView >> handleCreateClicked [
 	| name currency |
-	name     := (self shadowedElementWithId: #'trip-name')     propertyAt: 'value'.
-	currency := (self shadowedElementWithId: #'trip-currency') propertyAt: 'value'.
-	self serverAnnounce: (TripListCreateRequested tripName: name currency: currency)
+	name := (self shadowedElementWithId: #'trip-name') propertyAt:
+		        'value'.
+	currency := (self shadowedElementWithId: #'trip-currency')
+		            propertyAt: 'value'.
+	self serverAnnounce:
+		(TripListCreateRequested tripName: name currency: currency)
 ]
 
 { #category : 'event handling' }
@@ -103,11 +106,17 @@ TripListView >> handleNewClicked [
 TripListView >> initializeShadowRoot [
 	super initializeShadowRoot.
 	(self shadowedElementWithId: #'btn-new')
-		when: CpClickEvent basicPrimary send: #handleNewClicked    to: self.
+		when: CpClickEvent basicPrimary
+		send: #handleNewClicked
+		to: self.
 	(self shadowedElementWithId: #'btn-create')
-		when: CpClickEvent basicPrimary send: #handleCreateClicked to: self.
+		when: CpClickEvent basicPrimary
+		send: #handleCreateClicked
+		to: self.
 	(self shadowedElementWithId: #'btn-cancel')
-		when: CpClickEvent basicPrimary send: #handleCancelClicked to: self
+		when: CpClickEvent basicPrimary
+		send: #handleCancelClicked
+		to: self
 ]
 
 { #category : 'rendering' }
@@ -115,21 +124,27 @@ TripListView >> renderErrorMessage: aStringOrNil [
 	| banner |
 	banner := self shadowedElementWithId: #'error-banner'.
 	aStringOrNil isNil
-		ifTrue:  [ banner style: 'display:none'. banner textContent: '' ]
-		ifFalse: [ banner style: 'display:block'. banner textContent: aStringOrNil ]
+		ifTrue: [
+				banner style: 'display:none'.
+				banner textContent: '' ]
+		ifFalse: [
+				banner style: 'display:block'.
+				banner textContent: aStringOrNil ]
 ]
 
 { #category : 'rendering' }
 TripListView >> renderShowCreateForm: aBoolean [
 	| form btnNew |
-	form   := self shadowedElementWithId: #'create-form'.
+	form := self shadowedElementWithId: #'create-form'.
 	btnNew := self shadowedElementWithId: #'btn-new'.
 	aBoolean
-		ifTrue:  [
-			form style: 'display:block'.
-			btnNew style: 'display:none'.
-			(self shadowedElementWithId: #'trip-name') propertyAt: 'value' put: '' ]
+		ifTrue: [
+				form style: 'display:block'.
+				btnNew style: 'display:none'.
+				(self shadowedElementWithId: #'trip-name')
+					propertyAt: 'value'
+					put: '' ]
 		ifFalse: [
-			form style: 'display:none'.
-			btnNew style: 'display:block' ]
+				form style: 'display:none'.
+				btnNew style: 'display:block' ]
 ]

@@ -56,6 +56,16 @@ TripApplicationService >> findTrip: aTripId [
 ]
 
 { #category : 'accessing' }
+TripApplicationService >> removeExpense: anExpenseId fromTrip: aTripId [
+	"Supprime la depense du voyage et persiste."
+
+	| trip |
+	trip := repository findById: aTripId.
+	trip removeExpense: anExpenseId.
+	repository save: trip
+]
+
+{ #category : 'accessing' }
 TripApplicationService >> repository: aSTONTripRepository [ 
 	repository := aSTONTripRepository
 ]

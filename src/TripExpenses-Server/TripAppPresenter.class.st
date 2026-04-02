@@ -16,12 +16,12 @@ Class {
 TripAppPresenter >> renderView [
 	"Affiche soit la liste soit le detail selon l etat du modele racine."
 	self model isShowingDetail
-		ifTrue:  [
-			self
-				renderChildViewForModel: self model currentTripDetailModel
-				atSlotNamed: #page ]
+		ifTrue: [
+				self
+					renderChildViewForModel: self model currentTripDetailModel
+					atSlotNamed: #page ]
 		ifFalse: [
-			self
-				renderChildViewForModel: self model tripListModel
-				atSlotNamed: #page ]
+				self
+					renderChildViewForModel: self model tripListModel
+					atSlotNamed: #page ]
 ]
