@@ -14,6 +14,7 @@ Class {
 
 { #category : 'instance creation' }
 TripSettlementItemModel class >> fromDict: aDict [
+	"Conservé pour compatibilité."
 	^ self new
 		setFrom:     (aDict at: 'from')
 		to:          (aDict at: 'to')
@@ -22,23 +23,39 @@ TripSettlementItemModel class >> fromDict: aDict [
 		yourself
 ]
 
-{ #category : 'accessing' }
-TripSettlementItemModel >> amount [ ^ amount
+{ #category : 'instance creation' }
+TripSettlementItemModel class >> fromSettlement: aSettlement [
+	"Construit depuis un objet Settlement du domaine.
+	 Settlement expose #from (Participant), #to (Participant), #amount (Money)."
+	^ self new
+		setFrom:     aSettlement from name
+		to:          aSettlement to name
+		amount:      aSettlement amount amount
+		currency:    aSettlement amount currency;
+		yourself
 ]
 
 { #category : 'accessing' }
-TripSettlementItemModel >> currency [ ^ currency
+TripSettlementItemModel >> amount [
+	^ amount
 ]
 
 { #category : 'accessing' }
-TripSettlementItemModel >> fromName [ ^ fromName
+TripSettlementItemModel >> currency [
+	^ currency
+]
+
+{ #category : 'accessing' }
+TripSettlementItemModel >> fromName [
+	^ fromName
 ]
 
 { #category : 'testing' }
-TripSettlementItemModel >> preferredPresenterClass [ ^ TripSettlementItemPresenter
+TripSettlementItemModel >> preferredPresenterClass [
+	^ TripSettlementItemPresenter
 ]
 
-{ #category : 'initialization' }
+{ #category : 'private - setting' }
 TripSettlementItemModel >> setFrom: aFromName to: aToName amount: anAmount currency: aCurrency [
 	fromName := aFromName.
 	toName   := aToName.
@@ -47,5 +64,6 @@ TripSettlementItemModel >> setFrom: aFromName to: aToName amount: anAmount curre
 ]
 
 { #category : 'accessing' }
-TripSettlementItemModel >> toName [ ^ toName
+TripSettlementItemModel >> toName [
+	^ toName
 ]

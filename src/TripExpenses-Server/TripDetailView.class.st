@@ -1,6 +1,7 @@
 "
 I display the detail of a trip: header, participants, expenses, balances, settlements.
 I am a Passive View — I only receive Strings and Booleans from my Presenter.
+The back button announces TripDetailBackRequested.
 "
 Class {
 	#name : 'TripDetailView',
@@ -15,8 +16,9 @@ TripDetailView class >> style [
 	<webResource: #css>
 	^ '
 	:host { display: block; padding: 1rem; font-family: sans-serif; max-width: 640px; margin: 0 auto; }
-	.header { margin-bottom: 1.5rem; }
-	.trip-name { font-size: 1.5rem; font-weight: 500; margin: 0 0 .25rem; }
+	.header { margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+	.btn-back { background: transparent; border: none; cursor: pointer; font-size: 1.2rem; color: #5046e4; padding: 0; }
+	.trip-name { font-size: 1.5rem; font-weight: 500; margin: 0 0 .25rem; flex: 1; }
 	.trip-meta { color: #666; font-size: .9rem; }
 	.section { margin-bottom: 1.5rem; }
 	.section-title { font-size: 1rem; font-weight: 500; margin: 0 0 .5rem; color: #444; border-bottom: 2px solid #e0e0e0; padding-bottom: .25rem; }
@@ -38,8 +40,11 @@ TripDetailView class >> template [
 	<webResource: #html>
 	^ '
 	<div class="header">
-		<h1 class="trip-name" id="trip-name">…</h1>
-		<div class="trip-meta" id="trip-meta"></div>
+		<button id="btn-back" class="btn-back" title="Retour">&#8592;</button>
+		<div>
+			<h1 class="trip-name" id="trip-name">…</h1>
+			<div class="trip-meta" id="trip-meta"></div>
+		</div>
 	</div>
 	<div id="error-banner" class="error-banner" style="display:none"></div>
 	<div class="section">
@@ -49,7 +54,6 @@ TripDetailView class >> template [
 	<div class="section">
 		<div class="section-title">Dépenses</div>
 		<slot name="expenses"></slot>
-		<div id="empty-expenses" class="empty">Aucune dépense.</div>
 		<div id="expense-form" class="expense-form" style="display:none">
 			<h3>Nouvelle dépense</h3>
 			<label>Description</label>
@@ -77,7 +81,7 @@ TripDetailView class >> template [
 	'
 ]
 
-{ #category : 'initialization' }
+{ #category : 'event handling' }
 TripDetailView >> handleAddExpense [
 	| desc amount payerId |
 	desc    := (self shadowedElementWithId: #'expense-desc')   propertyAt: 'value'.
@@ -89,12 +93,17 @@ TripDetailView >> handleAddExpense [
 		payerId:      payerId)
 ]
 
-{ #category : 'initialization' }
+{ #category : 'event handling' }
+TripDetailView >> handleBack [
+	self serverAnnounce: TripDetailBackRequested
+]
+
+{ #category : 'event handling' }
 TripDetailView >> handleHideForm [
 	self serverAnnounce: TripDetailHideExpenseFormRequested
 ]
 
-{ #category : 'initialization' }
+{ #category : 'event handling' }
 TripDetailView >> handleShowForm [
 	self serverAnnounce: TripDetailShowExpenseFormRequested
 ]
@@ -102,23 +111,23 @@ TripDetailView >> handleShowForm [
 { #category : 'initialization' }
 TripDetailView >> initializeShadowRoot [
 	super initializeShadowRoot.
+	(self shadowedElementWithId: #'btn-back')
+		when: CpClickEvent basicPrimary send: #handleBack       to: self.
 	(self shadowedElementWithId: #'btn-show-form')
-		when: CpClickEvent basicPrimary send: #handleShowForm    to: self.
+		when: CpClickEvent basicPrimary send: #handleShowForm   to: self.
 	(self shadowedElementWithId: #'btn-add')
-		when: CpClickEvent basicPrimary send: #handleAddExpense  to: self.
+		when: CpClickEvent basicPrimary send: #handleAddExpense to: self.
 	(self shadowedElementWithId: #'btn-cancel')
-		when: CpClickEvent basicPrimary send: #handleHideForm    to: self
+		when: CpClickEvent basicPrimary send: #handleHideForm   to: self
 ]
 
-{ #category : 'initialization' }
+{ #category : 'rendering' }
 TripDetailView >> renderCurrency: aCurrency [
-	"Stocke pour la meta — appelé avant renderTotalExpenses"
 	(self shadowedElementWithId: #'trip-name')
 		setAttribute: 'data-currency' value: aCurrency
-
 ]
 
-{ #category : 'initialization' }
+{ #category : 'rendering' }
 TripDetailView >> renderErrorMessage: aString [
 	| banner |
 	banner := self shadowedElementWithId: #'error-banner'.
@@ -127,14 +136,12 @@ TripDetailView >> renderErrorMessage: aString [
 		ifFalse: [ banner style: 'display:block'. banner textContent: aString ]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'rendering' }
 TripDetailView >> renderParticipantOptions: aString [
-	"Reçoit 'id1:Alice|id2:Bob' — construit les options du select.
-	 Uniquement appelé quand la vue est prête."
 	| select |
 	select := self shadowedElementWithId: #'expense-payer'.
 	select removeChildren.
-	(aString isEmpty) ifTrue: [ ^ self ].
+	aString isEmpty ifTrue: [ ^ self ].
 	(aString substrings: $|) do: [ :pair |
 		| parts option |
 		parts  := pair substrings: $:.
@@ -144,7 +151,7 @@ TripDetailView >> renderParticipantOptions: aString [
 		select appendChild: option ]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'rendering' }
 TripDetailView >> renderShowExpenseForm: aBoolean [
 	| form btn |
 	form := self shadowedElementWithId: #'expense-form'.
@@ -158,7 +165,7 @@ TripDetailView >> renderShowExpenseForm: aBoolean [
 			form style: 'display:none'. btn style: 'display:block' ]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'rendering' }
 TripDetailView >> renderTotalExpenses: aTotal [
 	| currency meta |
 	currency := (self shadowedElementWithId: #'trip-name')
@@ -167,9 +174,7 @@ TripDetailView >> renderTotalExpenses: aTotal [
 	meta textContent: 'Total : ' , aTotal , ' ' , currency
 ]
 
-{ #category : 'initialization' }
+{ #category : 'rendering' }
 TripDetailView >> renderTripName: aName [
 	(self shadowedElementWithId: #'trip-name') textContent: aName
- 
-
 ]

@@ -1,6 +1,7 @@
 "
-I hold all data for a single trip detail view.
-I orchestrate participants, expenses, balances and settlements as child CpModels.
+Je tiens toutes les données pour la vue détail d'un seul voyage.
+Mon service est un TripApplicationService — je ne connais pas TripExpensesServerApp.
+Je ne passe jamais par handleMessage: ni par des Dictionary JSON.
 "
 Class {
 	#name : 'TripDetailModel',
@@ -23,79 +24,89 @@ Class {
 	#tag : 'TripDetail'
 }
 
-{ #category : 'as yet unclassified' }
-TripDetailModel class >> onService: aService tripId: anId [
+{ #category : 'instance creation' }
+TripDetailModel class >> onService: aTripApplicationService tripId: anId [
+	"aTripApplicationService est un TripApplicationService, jamais un TripExpensesServerApp."
 	^ self new
-		service: aService;
+		service: aTripApplicationService;
 		tripId:  anId;
 		loadTrip;
 		yourself
 ]
 
-{ #category : 'accessing' }
-TripDetailModel >> addExpenseDescription: aDescription amount: anAmount payerId: aPayerId participantIds: aCollection [
-		| response |
+{ #category : 'operations' }
+TripDetailModel >> addExpenseDescription: aDescription amount: anAmount payerId: aPayerId participantIds: aCollectionOfIds [
+	"Valide, construit l'Expense directement depuis les objets domaine,
+	 l'enregistre via le service, puis recharge le voyage.
+	 Aucun Dictionary JSON — on parle directement au domaine."
+	| trip payer payments splitRule expense |
+
 	(aDescription isNil or: [ aDescription trim isEmpty ]) ifTrue: [
 		errorMessage := 'La description ne peut pas être vide'.
 		self valueChanged. ^ self ].
 	(anAmount isNil or: [ anAmount <= 0 ]) ifTrue: [
 		errorMessage := 'Le montant doit être positif'.
 		self valueChanged. ^ self ].
-
-	response := service handleMessage: (Dictionary new
-		at: 'type'        put: 'addExpense';
-		at: 'tripId'      put: tripId;
-		at: 'description' put: aDescription trim;
-		at: 'amount'      put: anAmount;
-		at: 'currency'    put: currency;
-		at: 'payments'    put: { Dictionary new
-			at: 'participantId' put: aPayerId;
-			at: 'amount'        put: anAmount;
-			yourself };
-		at: 'splitRule'   put: (aCollection collect: [ :id |
-			Dictionary new
-				at: 'participantId' put: id;
-				at: 'weight'        put: 1;
-				yourself ]);
-		at: 'gifts'       put: #();
-		yourself).
-	(response at: 'type') = 'error' ifTrue: [
-		errorMessage := response at: 'message'.
+	(aCollectionOfIds isNil or: [ aCollectionOfIds isEmpty ]) ifTrue: [
+		errorMessage := 'Il faut au moins un participant'.
 		self valueChanged. ^ self ].
+
+	trip   := service findTrip: tripId.
+	payer  := trip participants
+		detect: [ :p | p id value = aPayerId ]
+		ifNone: [ errorMessage := 'Payeur introuvable'. self valueChanged. ^ self ].
+
+	payments  := { Payment
+		participant: payer
+		amount:      (Money amount: anAmount currency: currency) }.
+
+	splitRule := EqualSplitRule among:
+		(aCollectionOfIds collect: [ :id |
+			| p |
+			p := trip participants
+				detect: [ :p2 | p2 id value = id ]
+				ifNone: [ Error signal: 'Participant introuvable : ' , id ].
+			ParticipantWeight participant: p ]).
+
+	expense := Expense
+		description: aDescription trim
+		totalAmount:  (Money amount: anAmount currency: currency)
+		payments:     payments
+		splitRule:    splitRule
+		gifts:        #()
+		date:         Date today.
+
+	service addExpense: expense toTrip: tripId.
 	showingExpenseForm := false.
 	self loadTrip
 ]
 
 { #category : 'accessing' }
 TripDetailModel >> balances [
-
 	^ balances
 ]
 
 { #category : 'accessing' }
 TripDetailModel >> currency [
-
 	^ currency
 ]
 
 { #category : 'accessing' }
 TripDetailModel >> errorMessage [
-
 	^ errorMessage
 ]
 
 { #category : 'accessing' }
-TripDetailModel >> errorMessage: aStringOrNil [ 
-errorMessage := aStringOrNil
+TripDetailModel >> errorMessage: aStringOrNil [
+	errorMessage := aStringOrNil
 ]
 
 { #category : 'accessing' }
 TripDetailModel >> expenses [
-
 	^ expenses
 ]
 
-{ #category : 'accessing' }
+{ #category : 'operations' }
 TripDetailModel >> hideExpenseForm [
 	showingExpenseForm := false.
 	errorMessage       := nil.
@@ -105,46 +116,43 @@ TripDetailModel >> hideExpenseForm [
 { #category : 'initialization' }
 TripDetailModel >> initialize [
 	super initialize.
-	participants      := OrderedCollection new.
-	expenses          := OrderedCollection new.
-	balances          := OrderedCollection new.
-	settlements       := OrderedCollection new.
+	participants       := OrderedCollection new.
+	expenses           := OrderedCollection new.
+	balances           := OrderedCollection new.
+	settlements        := OrderedCollection new.
 	showingExpenseForm := false.
-	errorMessage      := nil
+	errorMessage       := nil
 ]
 
-{ #category : 'accessing' }
+{ #category : 'operations' }
 TripDetailModel >> loadTrip [
-	| response trip |
-	response := service handleMessage: (Dictionary new
-		at: 'type'   put: 'findTrip';
-		at: 'tripId' put: tripId;
-		yourself).
-	(response at: 'type') = 'error' ifTrue: [
-		errorMessage := response at: 'message'.
-		self valueChanged.
-		^ self ].
-	trip         := response at: 'trip'.
-	tripName     := trip at: 'name'.
-	currency     := trip at: 'currency'.
-	totalExpenses := (trip at: 'totalExpenses') printString.
-	participants := (trip at: 'participants') collect: [ :d |
-		TripParticipantModel fromDict: d ].
-	expenses := trip at: 'expenses' ifAbsent: [ #() ].
-	expenses := expenses collect: [ :d |
-		TripExpenseExpenseItemModel fromDict: d currency: currency ].
-	balances := (trip at: 'balances') collect: [ :d |
-		TripBalanceItemModel fromDict: d ].
-	settlements := (trip at: 'settlements') collect: [ :d |
-		TripSettlementItemModel fromDict: d ].
-	errorMessage := nil.
+	"Charge le voyage depuis le service domaine.
+	 Chaque objet domaine est converti en sous-CpModel via les factories fromXxx:."
+	| trip |
+	trip          := service findTrip: tripId.
+	tripName      := trip name.
+	currency      := trip currency.
+	totalExpenses := trip totalExpenses amount printString.
+	participants  := trip participants collect: [ :p |
+		TripParticipantModel fromParticipant: p ].
+	expenses      := trip expenses collect: [ :e |
+		TripExpenseExpenseItemModel fromExpense: e currency: currency ].
+	balances      := trip balances associations collect: [ :assoc |
+		TripBalanceItemModel fromParticipant: assoc key money: assoc value ].
+	settlements   := trip settlements collect: [ :s |
+		TripSettlementItemModel fromSettlement: s ].
+	errorMessage  := nil.
 	self valueChanged
 ]
 
 { #category : 'accessing' }
 TripDetailModel >> participants [
-
 	^ participants
+]
+
+{ #category : 'testing' }
+TripDetailModel >> preferredPresenterClass [
+	^ TripDetailPresenter
 ]
 
 { #category : 'accessing' }
@@ -153,18 +161,17 @@ TripDetailModel >> service [
 	^ service
 ]
 
-{ #category : 'accessing' }
-TripDetailModel >> service: aTripExpensesServerApp [
- service := aTripExpensesServerApp
+{ #category : 'private - setting' }
+TripDetailModel >> service: aTripApplicationService [
+	service := aTripApplicationService
 ]
 
 { #category : 'accessing' }
 TripDetailModel >> settlements [
-
 	^ settlements
 ]
 
-{ #category : 'accessing' }
+{ #category : 'operations' }
 TripDetailModel >> showExpenseForm [
 	showingExpenseForm := true.
 	errorMessage       := nil.
@@ -173,28 +180,25 @@ TripDetailModel >> showExpenseForm [
 
 { #category : 'accessing' }
 TripDetailModel >> showingExpenseForm [
-
 	^ showingExpenseForm
 ]
 
 { #category : 'accessing' }
 TripDetailModel >> totalExpenses [
-
 	^ totalExpenses
 ]
 
-{ #category : 'initialization' }
+{ #category : 'accessing' }
 TripDetailModel >> tripId [
- ^ tripId
+	^ tripId
 ]
 
-{ #category : 'accessing' }
-TripDetailModel >> tripId: anId [ 
-tripId := anId
+{ #category : 'private - setting' }
+TripDetailModel >> tripId: anId [
+	tripId := anId
 ]
 
 { #category : 'accessing' }
 TripDetailModel >> tripName [
-
 	^ tripName
 ]

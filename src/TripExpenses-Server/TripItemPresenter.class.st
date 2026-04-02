@@ -1,6 +1,6 @@
 "
-I render a single TripItemModel.
-When clicked I tell my parent (TripListPresenter) which trip was selected.
+Je rends un seul TripItemModel.
+Quand l utilisateur clique, je navigue directement via self application — chemin unique.
 "
 Class {
 	#name : 'TripItemPresenter',
@@ -12,17 +12,18 @@ Class {
 
 { #category : 'rendering' }
 TripItemPresenter >> onClicked [
-	"Je connais mon modèle — je remonte l annonce avec le tripId au parent"
-self application navigateToTrip: self model tripId
+	"Chemin UNIQUE de navigation vers le détail.
+	 TripListPresenter ne gère plus TripListTripSelected (supprimé)."
+	self application navigateToTrip: self model tripId
 ]
 
 { #category : 'rendering' }
 TripItemPresenter >> renderView [
-	"Envoie uniquement des String et Number à la vue"
-	self view renderTripName:         self model name
-	          currency:               self model currency
-	          participantCount:       self model participantCount printString
-	          totalExpenses:          self model totalExpenses printString
+	self view
+		renderTripName:       self model name
+		currency:             self model currency
+		participantCount:     self model participantCount printString
+		totalExpenses:        self model totalExpenses printString
 ]
 
 { #category : 'rendering' }

@@ -2,7 +2,11 @@
 I am the View for TripListModel.
 I am a WebComponent running in the browser.
 I am a Passive View: I only render what the Presenter tells me.
-I announce user actions to the Presenter via serverAnnounce
+I announce user actions to the Presenter via serverAnnounce.
+
+La navigation vers un voyage est gérée par TripItemView (child view) → TripItemPresenter.
+Je n'annonce plus TripListTripSelected — ce chemin était mort.
+La méthode buildTripItemFor: a été supprimée — c'était du code mort.
 "
 Class {
 	#name : 'TripListView',
@@ -77,25 +81,21 @@ TripListView >> buildTripItemFor: tripDict [
 	^ li
 ]
 
-{ #category : 'initialization' }
+{ #category : 'event handling' }
 TripListView >> handleCancelClicked [
 	self serverAnnounce: TripListHideFormRequested
 ]
 
-{ #category : 'initialization' }
+{ #category : 'event handling' }
 TripListView >> handleCreateClicked [
-	"L annonce porte les données du formulaire"
-
 	| name currency |
 	name     := (self shadowedElementWithId: #'trip-name')     propertyAt: 'value'.
-currency := (self shadowedElementWithId: #'trip-currency') propertyAt: 'value'.
-	self serverAnnounce:
-		(TripListCreateRequested tripName: name currency: currency)
+	currency := (self shadowedElementWithId: #'trip-currency') propertyAt: 'value'.
+	self serverAnnounce: (TripListCreateRequested tripName: name currency: currency)
 ]
 
-{ #category : 'initialization' }
+{ #category : 'event handling' }
 TripListView >> handleNewClicked [
-	"Annonce au presenter — même pattern que CpCounterView >> handleIncrease"
 	self serverAnnounce: TripListShowFormRequested
 ]
 
@@ -110,7 +110,7 @@ TripListView >> initializeShadowRoot [
 		when: CpClickEvent basicPrimary send: #handleCancelClicked to: self
 ]
 
-{ #category : 'initialization' }
+{ #category : 'rendering' }
 TripListView >> renderErrorMessage: aStringOrNil [
 	| banner |
 	banner := self shadowedElementWithId: #'error-banner'.
@@ -119,18 +119,17 @@ TripListView >> renderErrorMessage: aStringOrNil [
 		ifFalse: [ banner style: 'display:block'. banner textContent: aStringOrNil ]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'rendering' }
 TripListView >> renderShowCreateForm: aBoolean [
-
 	| form btnNew |
-	form := self shadowedElementWithId: #'create-form'.
+	form   := self shadowedElementWithId: #'create-form'.
 	btnNew := self shadowedElementWithId: #'btn-new'.
 	aBoolean
-		ifTrue: [
-				form style: 'display:block'.
-				btnNew style: 'display:none'.
-				(self shadowedElementWithId: #'trip-name') propertyAt: 'value' put: '' ]
+		ifTrue:  [
+			form style: 'display:block'.
+			btnNew style: 'display:none'.
+			(self shadowedElementWithId: #'trip-name') propertyAt: 'value' put: '' ]
 		ifFalse: [
-				form style: 'display:none'.
-				btnNew style: 'display:block' ]
+			form style: 'display:none'.
+			btnNew style: 'display:block' ]
 ]

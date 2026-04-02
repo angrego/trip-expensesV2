@@ -19,71 +19,81 @@ Class {
 
 { #category : 'instance creation' }
 TripItemModel class >> fromDict: aDict [
+	"Conservé pour les tests de sérialisation existants (STONTripRepositoryTest, etc.)
+	 Ne pas utiliser dans le code de production — préférer fromTrip:."
 	^ self new
-		setTripId:          (aDict at: 'id');
-		setName:            (aDict at: 'name');
-		setCurrency:        (aDict at: 'currency');
-		setParticipantCount:(aDict at: 'participantCount');
-		setTotalExpenses:   (aDict at: 'totalExpenses');
+		setTripId:           (aDict at: 'id');
+		setName:             (aDict at: 'name');
+		setCurrency:         (aDict at: 'currency');
+		setParticipantCount: (aDict at: 'participantCount');
+		setTotalExpenses:    (aDict at: 'totalExpenses');
+		yourself
+]
+
+{ #category : 'instance creation' }
+TripItemModel class >> fromTrip: aTrip [
+	"Construit un TripItemModel à partir d'un objet Trip du domaine.
+	 C'est la seule factory à utiliser dans le code refactorisé."
+	^ self new
+		setTripId:           aTrip id;
+		setName:             aTrip name;
+		setCurrency:         aTrip currency;
+		setParticipantCount: aTrip participants size;
+		setTotalExpenses:    aTrip totalExpenses amount;
 		yourself
 ]
 
 { #category : 'accessing' }
 TripItemModel >> currency [
-
 	^ currency
 ]
 
 { #category : 'accessing' }
 TripItemModel >> name [
-
 	^ name
 ]
 
 { #category : 'accessing' }
 TripItemModel >> participantCount [
-
 	^ participantCount
 ]
 
-{ #category : 'accessing' }
+{ #category : 'testing' }
 TripItemModel >> preferredPresenterClass [
 	^ TripItemPresenter
 ]
 
-{ #category : 'accessing' }
+{ #category : 'private - setting' }
 TripItemModel >> setCurrency: aString [
 	currency := aString
 ]
 
-{ #category : 'accessing' }
+{ #category : 'private - setting' }
 TripItemModel >> setName: aString [
 	name := aString
 ]
 
-{ #category : 'accessing' }
+{ #category : 'private - setting' }
 TripItemModel >> setParticipantCount: aNumber [
 	participantCount := aNumber
 ]
 
-{ #category : 'accessing' }
+{ #category : 'private - setting' }
 TripItemModel >> setTotalExpenses: aNumber [
 	totalExpenses := aNumber
 ]
 
-{ #category : 'accessing' }
+{ #category : 'private - setting' }
 TripItemModel >> setTripId: aString [
 	tripId := aString
 ]
 
 { #category : 'accessing' }
 TripItemModel >> totalExpenses [
-
 	^ totalExpenses
 ]
 
 { #category : 'accessing' }
 TripItemModel >> tripId [
-
 	^ tripId
 ]

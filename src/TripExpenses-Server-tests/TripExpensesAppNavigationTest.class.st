@@ -27,30 +27,29 @@ TripExpensesAppNavigationTest >> setUp [
 	app     := TripExpensesApplication onService: service
 ]
 
-{ #category : 'running' }
+{ #category : 'tests - navigation' }
 TripExpensesAppNavigationTest >> testApplicationModelIsStableAfterNavigation [
 	"applicationModel doit retourner le MÊME objet à chaque appel (pas de recréation)."
-
 	| trip first second |
-	trip := service createTrip: 'Vacances' currency: 'EUR'.
+	trip   := service createTrip: 'Vacances' currency: 'EUR'.
 	app navigateToTrip: trip id.
-	first := app applicationModel.
+	first  := app applicationModel.
 	second := app applicationModel.
-	self assert: first identicalTo: second
+	self assert: first == second
 ]
 
-{ #category : 'running' }
+{ #category : 'tests - état initial' }
 TripExpensesAppNavigationTest >> testInitialApplicationModelIsTripListModel [
 	self assert: (app applicationModel isKindOf: TripListModel)
 ]
 
-{ #category : 'running' }
+{ #category : 'tests - état initial' }
 TripExpensesAppNavigationTest >> testInitialPreferredPresenterClassIsTripListPresenter [
 	"Le modèle root expose son presenter — pas l application."
 	self assert: (app applicationModel preferredPresenterClass = TripListPresenter)
 ]
 
-{ #category : 'running' }
+{ #category : 'tests - navigation' }
 TripExpensesAppNavigationTest >> testNavigateToListAnnouncesValueChanged [
 	| announced trip |
 	trip := service createTrip: 'Vacances' currency: 'EUR'.
@@ -61,16 +60,18 @@ TripExpensesAppNavigationTest >> testNavigateToListAnnouncesValueChanged [
 	self assert: announced
 ]
 
-{ #category : 'running' }
+{ #category : 'tests - navigation' }
 TripExpensesAppNavigationTest >> testNavigateToListPreferredPresenterClassIsTripListPresenter [
-	| trip |
+
+| trip |
 	trip := service createTrip: 'Vacances' currency: 'EUR'.
 	app navigateToTrip: trip id.
 	app navigateToList.
-	self assert: (app applicationModel preferredPresenterClass = TripListPresenter)
+	self assert:
+		app applicationModel preferredPresenterClass = TripListPresenter
 ]
 
-{ #category : 'running' }
+{ #category : 'tests - navigation' }
 TripExpensesAppNavigationTest >> testNavigateToListReloadsTrips [
 	"Après navigateToList, la liste doit être fraîche."
 	| trip |
@@ -81,7 +82,7 @@ TripExpensesAppNavigationTest >> testNavigateToListReloadsTrips [
 	self assert: app applicationModel trips size equals: 2
 ]
 
-{ #category : 'running' }
+{ #category : 'tests - navigation' }
 TripExpensesAppNavigationTest >> testNavigateToListRestoresTripListModel [
 	| trip |
 	trip := service createTrip: 'Vacances' currency: 'EUR'.
@@ -90,7 +91,7 @@ TripExpensesAppNavigationTest >> testNavigateToListRestoresTripListModel [
 	self assert: (app applicationModel isKindOf: TripListModel)
 ]
 
-{ #category : 'running' }
+{ #category : 'tests - navigation' }
 TripExpensesAppNavigationTest >> testNavigateToTripAnnouncesValueChanged [
 	| announced trip |
 	trip := service createTrip: 'Vacances' currency: 'EUR'.
@@ -100,7 +101,7 @@ TripExpensesAppNavigationTest >> testNavigateToTripAnnouncesValueChanged [
 	self assert: announced
 ]
 
-{ #category : 'running' }
+{ #category : 'tests - navigation' }
 TripExpensesAppNavigationTest >> testNavigateToTripChangesApplicationModelToTripDetailModel [
 	| trip |
 	trip := service createTrip: 'Vacances' currency: 'EUR'.
@@ -108,7 +109,7 @@ TripExpensesAppNavigationTest >> testNavigateToTripChangesApplicationModelToTrip
 	self assert: (app applicationModel isKindOf: TripDetailModel)
 ]
 
-{ #category : 'running' }
+{ #category : 'tests - navigation' }
 TripExpensesAppNavigationTest >> testNavigateToTripModelHasCorrectTripId [
 	| trip |
 	trip := service createTrip: 'Vacances' currency: 'EUR'.
@@ -116,7 +117,7 @@ TripExpensesAppNavigationTest >> testNavigateToTripModelHasCorrectTripId [
 	self assert: app applicationModel tripId equals: trip id
 ]
 
-{ #category : 'running' }
+{ #category : 'tests - navigation' }
 TripExpensesAppNavigationTest >> testNavigateToTripPreferredPresenterClassIsTripDetailPresenter [
 	| trip |
 	trip := service createTrip: 'Vacances' currency: 'EUR'.
@@ -124,7 +125,7 @@ TripExpensesAppNavigationTest >> testNavigateToTripPreferredPresenterClassIsTrip
 	self assert: (app applicationModel preferredPresenterClass = TripDetailPresenter)
 ]
 
-{ #category : 'running' }
+{ #category : 'tests - navigation' }
 TripExpensesAppNavigationTest >> testTripListModelIsStableAcrossNavigations [
 	"Le TripListModel doit être le MÊME objet avant et après un aller-retour."
 	| initialModel trip |
