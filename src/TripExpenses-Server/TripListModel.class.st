@@ -76,7 +76,7 @@ TripListModel >> loadTrips [
 	self valueChanged
 ]
 
-{ #category : 'testing' }
+{ #category : 'presenter' }
 TripListModel >> preferredPresenterClass [
 	^ TripListPresenter
 ]

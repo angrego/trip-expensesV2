@@ -1,17 +1,16 @@
 "
-Je suis l'application CodeParadise pour TripExpenses.
-URL: http://localhost:8080/static/app.html?trip-expenses
+Je suis l application CodeParadise pour TripExpenses.
+URL: http://localhost:8080/static/app.html?app=Voyages
 
-Responsabilités :
+Responsabilites :
   - Tenir le TripApplicationService.
-  - Gérer la navigation entre TripListModel et TripDetailModel.
-  - applicationModel retourne toujours le MÊME objet (pas de recréation).
-  - preferredPresenterClass est délégué au modèle courant (pattern CP standard).
+  - Gerer la navigation entre TripListModel et TripDetailModel.
+  - applicationModel retourne toujours le MEME objet (pas de recréation).
+  - preferredPresenterClass est délégué au modèle courant.
 
-Ce que je ne fais PAS :
-  - Connaître TripExpensesServerApp.
-  - Construire des Dictionary JSON.
-  - Recréer un modèle à chaque appel de applicationModel.
+Signal de changement :
+  CP utilise self changed (et non self announce: ValueChanged new)
+  pour déclencher le swap de presenter quand applicationModel change.
 "
 Class {
 	#name : 'TripExpensesApplication',
@@ -33,77 +32,86 @@ TripExpensesApplication class >> app [
 
 { #category : 'instance creation' }
 TripExpensesApplication class >> onService: aTripApplicationService [
-	"Factory pour les tests — injecte le service sans passer par initialize."
+	"Factory principale — utilisée par TripExpensesServerApp et les tests."
 	^ self new
-		initializeWithService: aTripApplicationService;
-		yourself
+		  initializeWithService: aTripApplicationService;
+		  yourself
 ]
 
 { #category : 'instance creation' }
 TripExpensesApplication class >> withSampleData [
-	"Raccourci de développement — crée un service avec des données d exemple."
+	"Raccourci de développement."
 	| repo service trip alice bob charlie rule |
-	repo    := InMemoryTripRepository new.
+	repo := InMemoryTripRepository new.
 	service := TripApplicationService withRepository: repo.
-	trip    := service createTrip: 'Vacances été 2026' currency: 'EUR'.
-	alice   := service addParticipant: 'Alice'   toTrip: trip id.
-	bob     := service addParticipant: 'Bob'     toTrip: trip id.
+	trip := service createTrip: 'Vacances été 2026' currency: 'EUR'.
+	alice := service addParticipant: 'Alice' toTrip: trip id.
+	bob := service addParticipant: 'Bob' toTrip: trip id.
 	charlie := service addParticipant: 'Charlie' toTrip: trip id.
-	trip    := service findTrip: trip id.
-	rule    := EqualSplitRule among: {
-		ParticipantWeight participant: alice.
-		ParticipantWeight participant: bob.
-		ParticipantWeight participant: charlie }.
-	service addExpense: (Expense
-		description: 'Restaurant'
-		totalAmount: (Money amount: 90 currency: 'EUR')
-		payments: { Payment participant: alice amount: (Money amount: 90 currency: 'EUR') }
-		splitRule: rule gifts: {} date: Date today) toTrip: trip id.
+	trip := service findTrip: trip id.
+	rule := EqualSplitRule among: {
+			        (ParticipantWeight participant: alice).
+			        (ParticipantWeight participant: bob).
+			        (ParticipantWeight participant: charlie) }.
+	service
+		addExpense: (Expense
+				 description: 'Restaurant'
+				 totalAmount: (Money amount: 90 currency: 'EUR')
+				 payments: { (Payment
+						  participant: alice
+						  amount: (Money amount: 90 currency: 'EUR')) }
+				 splitRule: rule
+				 gifts: {  }
+				 date: Date today)
+		toTrip: trip id.
 	^ self onService: service
 ]
 
 { #category : 'accessing' }
 TripExpensesApplication >> applicationModel [
-	"Retourne le modèle courant selon l état de navigation.
-	 Toujours le MÊME objet — pas de recréation à chaque appel."
+"Retourne le modèle courant. Toujours le MEME objet — pas de recréation à chaque appel."
+
 	^ currentTripDetailModel ifNil: [ tripListModel ]
 ]
 
 { #category : 'initialization' }
 TripExpensesApplication >> initialize [
-	"Appelé par CP après instanciation.
-	 Utilise withSampleData pour le développement — remplacer par onService: en production."
+	"Appelé par CP à l instanciation.	 En production, TripExpensesServerApp injecte le service via onService:	 donc initialize ne doit PAS créer de données — juste initialiser les variables."
+
 	super initialize.
-	self initializeWithService: (TripApplicationService withRepository: InMemoryTripRepository new)
+
 ]
 
 { #category : 'initialization' }
 TripExpensesApplication >> initializeWithService: aTripApplicationService [
-	"Point d initialisation testable — reçoit le service sans créer TripExpensesServerApp."
-	service               := aTripApplicationService.
-	tripListModel         := TripListModel onService: service.
+	"Point d initialisation principal — reçoit le service injecté."
+	service := aTripApplicationService.
+	tripListModel := TripListModel onService: service.
 	currentTripDetailModel := nil
 ]
 
 { #category : 'navigation' }
 TripExpensesApplication >> navigateToList [
-	"Retour vers la liste — détruit le modèle détail et recharge les voyages."
+	"Retour vers la liste.	 self changed déclenche le swap de presenter root vers TripListPresenter."
+
 	currentTripDetailModel := nil.
 	tripListModel loadTrips.
-	self announce: ValueChanged new
+	self changed
 ]
 
 { #category : 'navigation' }
 TripExpensesApplication >> navigateToTrip: aTripId [
-	"Unique point d entrée pour naviguer vers un voyage.
-	 Crée (une seule fois) le TripDetailModel et annonce le changement à CP."
-	currentTripDetailModel := TripDetailModel onService: service tripId: aTripId.
-	self announce: ValueChanged new
+	"Navigue vers le détail d un voyage.	 self changed signale à CP que applicationModel et preferredPresenterClass 	 ont changé → CP swap le presenter root."
+
+	currentTripDetailModel := TripDetailModel
+		                          onService: service
+		                          tripId: aTripId.
+	self changed
 ]
 
 { #category : 'accessing' }
 TripExpensesApplication >> preferredPresenterClass [
-	"Délègue au modèle courant — c est lui qui connaît son presenter.
-	 Pattern CP standard : chaque CpModel déclare preferredPresenterClass."
+"Délègue au modèle courant — chaque CpModel déclare son presenter."
+
 	^ self applicationModel preferredPresenterClass
 ]

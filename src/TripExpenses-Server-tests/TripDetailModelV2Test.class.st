@@ -67,28 +67,33 @@ TripDetailModelV2Test >> testAddExpenseCreatesSettlement [
 
 { #category : 'tests - ajout dépense' }
 TripDetailModelV2Test >> testAddExpenseExpenseItemHasAmount [
-	"Le montant est stocké comme String affichable."
+"Le montant est stocké comme String affichable."
+
 	self addExpenseAmount: 60.
 	self assert: model expenses first amount isNotNil
 ]
 
 { #category : 'tests - ajout dépense' }
 TripDetailModelV2Test >> testAddExpenseExpenseItemHasDescription [
-	self addExpenseAmount: 60.
+
+self addExpenseAmount: 60.
 	self assert: model expenses first description equals: 'Resto'
 ]
 
 { #category : 'tests - ajout dépense' }
 TripDetailModelV2Test >> testAddExpenseHidesForm [
-	model showExpenseForm.
+
+model showExpenseForm.
 	self addExpenseAmount: 60.
 	self deny: model showingExpenseForm
 ]
 
 { #category : 'tests - ajout dépense' }
 TripDetailModelV2Test >> testAddExpenseIsATripExpenseItemModel [
-	self addExpenseAmount: 60.
-	self assert: (model expenses first isKindOf: TripExpenseExpenseItemModel)
+
+self addExpenseAmount: 60.
+	self assert:
+		(model expenses first isKindOf: TripExpenseExpenseItemModel)
 ]
 
 { #category : 'tests - validation' }
@@ -103,33 +108,60 @@ TripDetailModelV2Test >> testAddExpenseSettlementHasFromAndTo [
 
 { #category : 'tests - ajout dépense' }
 TripDetailModelV2Test >> testAddExpenseUpdatesBalances [
+
 	| aliceBalance |
 	self addExpenseAmount: 60.
-	aliceBalance := model balances detect: [ :b | b participantName = 'Alice' ].
+	aliceBalance := model balances detect: [ :b |
+		                b participantName = 'Alice' ].
 	self assert: aliceBalance amount equals: '30'
 ]
 
 { #category : 'tests - validation' }
 TripDetailModelV2Test >> testAddExpenseWithBlankDescriptionDoesNotAddExpense [
-	model addExpenseDescription: '' amount: 60 payerId: aliceId participantIds: { aliceId. bobId }.
+	model
+		addExpenseDescription: ''
+		amount: 60
+		payerId: aliceId
+		participantIds: {
+				aliceId.
+				bobId }.
 	self assert: model expenses isEmpty
 ]
 
 { #category : 'tests - validation' }
 TripDetailModelV2Test >> testAddExpenseWithBlankDescriptionSetsError [
-	model addExpenseDescription: '' amount: 60 payerId: aliceId participantIds: { aliceId. bobId }.
+
+model
+		addExpenseDescription: ''
+		amount: 60
+		payerId: aliceId
+		participantIds: {
+				aliceId.
+				bobId }.
 	self assert: model errorMessage isNotNil
 ]
 
 { #category : 'tests - validation' }
 TripDetailModelV2Test >> testAddExpenseWithEmptyParticipantsSetsError [
-	model addExpenseDescription: 'Resto' amount: 60 payerId: aliceId participantIds: #().
+
+model
+		addExpenseDescription: 'Resto'
+		amount: 60
+		payerId: aliceId
+		participantIds: #(  ).
 	self assert: model errorMessage isNotNil
 ]
 
 { #category : 'tests - validation' }
 TripDetailModelV2Test >> testAddExpenseWithNegativeAmountSetsError [
-	model addExpenseDescription: 'Resto' amount: -10 payerId: aliceId participantIds: { aliceId. bobId }.
+
+model
+		addExpenseDescription: 'Resto'
+		amount: -10
+		payerId: aliceId
+		participantIds: {
+				aliceId.
+				bobId }.
 	self assert: model errorMessage isNotNil
 ]
 
@@ -148,21 +180,29 @@ TripDetailModelV2Test >> testAddExpenseWithZeroAmountSetsError [
 
 { #category : 'tests - ajout dépense' }
 TripDetailModelV2Test >> testAddTwoExpensesBothInList [
-	self addExpenseAmount: 60.
+
+self addExpenseAmount: 60.
 	self addExpenseAmount: 40.
 	self assert: model expenses size equals: 2
 ]
 
 { #category : 'tests - validation' }
 TripDetailModelV2Test >> testAddValidExpenseClearsError [
-	model addExpenseDescription: '' amount: 60 payerId: aliceId participantIds: { aliceId. bobId }.
+	model
+		addExpenseDescription: ''
+		amount: 60
+		payerId: aliceId
+		participantIds: {
+				aliceId.
+				bobId }.
 	self addExpenseAmount: 30.
 	self assert: model errorMessage isNil
 ]
 
 { #category : 'tests - formulaire' }
 TripDetailModelV2Test >> testHideExpenseFormAnnouncesValueChanged [
-	| announced |
+
+| announced |
 	announced := false.
 	model showExpenseForm.
 	model when: ValueChanged do: [ announced := true ].
@@ -172,46 +212,54 @@ TripDetailModelV2Test >> testHideExpenseFormAnnouncesValueChanged [
 
 { #category : 'tests - formulaire' }
 TripDetailModelV2Test >> testHideExpenseFormClearsError [
-	model errorMessage: 'une erreur'.
+
+model errorMessage: 'une erreur'.
 	model hideExpenseForm.
 	self assert: model errorMessage isNil
 ]
 
 { #category : 'tests - formulaire' }
 TripDetailModelV2Test >> testHideExpenseFormClearsFlag [
-	model showExpenseForm.
+
+model showExpenseForm.
 	model hideExpenseForm.
 	self deny: model showingExpenseForm
 ]
 
 { #category : 'tests - chargement' }
 TripDetailModelV2Test >> testInitialBalancesHasOneEntryPerParticipant [
-	self assert: model balances size equals: 2
+
+self assert: model balances size equals: 2
 ]
 
 { #category : 'tests - chargement' }
 TripDetailModelV2Test >> testInitialErrorIsNil [
-	self assert: model errorMessage isNil
+
+self assert: model errorMessage isNil
 ]
 
 { #category : 'tests - chargement' }
 TripDetailModelV2Test >> testInitialExpensesIsEmpty [
-	self assert: model expenses isEmpty
+
+self assert: model expenses isEmpty
 ]
 
 { #category : 'tests - chargement' }
 TripDetailModelV2Test >> testInitialSettlementsIsEmpty [
-	self assert: model settlements isEmpty
+
+self assert: model settlements isEmpty
 ]
 
 { #category : 'tests - chargement' }
 TripDetailModelV2Test >> testInitialShowingExpenseFormIsFalse [
-	self deny: model showingExpenseForm
+
+self deny: model showingExpenseForm
 ]
 
 { #category : 'tests - chargement' }
 TripDetailModelV2Test >> testLoadTripAnnouncesValueChanged [
-	| announced |
+
+| announced |
 	announced := false.
 	model when: ValueChanged do: [ announced := true ].
 	model loadTrip.
@@ -220,35 +268,42 @@ TripDetailModelV2Test >> testLoadTripAnnouncesValueChanged [
 
 { #category : 'tests - chargement' }
 TripDetailModelV2Test >> testLoadTripHasTwoParticipants [
-	self assert: model participants size equals: 2
+
+self assert: model participants size equals: 2
 ]
 
 { #category : 'tests - chargement' }
 TripDetailModelV2Test >> testLoadTripStoresCurrency [
-	self assert: model currency equals: 'EUR'
+
+self assert: model currency equals: 'EUR'
 ]
 
 { #category : 'tests - chargement' }
 TripDetailModelV2Test >> testLoadTripStoresName [
-	self assert: model tripName equals: 'Vacances'
+
+self assert: model tripName equals: 'Vacances'
 ]
 
 { #category : 'tests - chargement' }
 TripDetailModelV2Test >> testParticipantsAreTripParticipantModels [
-	self assert: (model participants first isKindOf: TripParticipantModel)
+
+self assert:
+		(model participants first isKindOf: TripParticipantModel)
 ]
 
 { #category : 'tests - chargement' }
 TripDetailModelV2Test >> testParticipantsExposeParticipantId [
-	"participantId doit être une String non vide — la vue en a besoin pour le select."
+"participantId doit être une String non vide — la vue en a besoin pour le select."
+
 	model participants do: [ :p |
-		self assert: p participantId isNotNil.
-		self deny: p participantId isEmpty ]
+			self assert: p participantId isNotNil.
+			self deny: p participantId isEmpty ]
 ]
 
 { #category : 'tests - chargement' }
 TripDetailModelV2Test >> testParticipantsHaveNames [
-	| names |
+
+| names |
 	names := model participants collect: [ :p | p name ].
 	self assert: (names includes: 'Alice').
 	self assert: (names includes: 'Bob')
@@ -256,7 +311,8 @@ TripDetailModelV2Test >> testParticipantsHaveNames [
 
 { #category : 'tests - formulaire' }
 TripDetailModelV2Test >> testShowExpenseFormAnnouncesValueChanged [
-	| announced |
+
+| announced |
 	announced := false.
 	model when: ValueChanged do: [ announced := true ].
 	model showExpenseForm.
@@ -265,13 +321,15 @@ TripDetailModelV2Test >> testShowExpenseFormAnnouncesValueChanged [
 
 { #category : 'tests - formulaire' }
 TripDetailModelV2Test >> testShowExpenseFormClearsError [
-	model errorMessage: 'une erreur'.
+
+model errorMessage: 'une erreur'.
 	model showExpenseForm.
 	self assert: model errorMessage isNil
 ]
 
 { #category : 'tests - formulaire' }
 TripDetailModelV2Test >> testShowExpenseFormSetsFlag [
-	model showExpenseForm.
+
+model showExpenseForm.
 	self assert: model showingExpenseForm
 ]
