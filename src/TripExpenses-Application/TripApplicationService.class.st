@@ -28,13 +28,19 @@ TripApplicationService >> addExpense: anExpense toTrip: aTripId [
 ]
 
 { #category : 'accessing' }
-TripApplicationService >> addParticipant: aName toTrip: aTripId [ 
-    | trip participant |
-    trip := repository findById: aTripId.
-    participant := Participant name: aName.
-    trip addParticipant: participant.
-    repository save: trip.
-    ^ participant
+TripApplicationService >> addParticipant: aParticipant toTrip: aTripId [
+
+	| trip |
+	trip := repository findById: aTripId.
+	trip addParticipant: aParticipant.
+	repository save: trip.
+	^ aParticipant 
+]
+
+{ #category : 'accessing' }
+TripApplicationService >> addParticipantByName: aName toTrip: aTripId [
+
+	^ self addParticipant: (Participant name: aName) toTrip: aTripId
 ]
 
 { #category : 'as yet unclassified' }
@@ -56,16 +62,24 @@ TripApplicationService >> findTrip: aTripId [
 ]
 
 { #category : 'accessing' }
-TripApplicationService >> removeExpense: anExpenseId fromTrip: aTripId [
+TripApplicationService >> removeExpense: anExpense fromTrip: aTripId [
 	"Supprime la depense du voyage et persiste."
 
 	| trip |
 	trip := repository findById: aTripId.
-	trip removeExpense: anExpenseId.
+	trip removeExpense: anExpense id.
 	repository save: trip
 ]
 
 { #category : 'accessing' }
 TripApplicationService >> repository: aSTONTripRepository [ 
 	repository := aSTONTripRepository
+]
+
+{ #category : 'as yet unclassified' }
+TripApplicationService >> settlementsForTrip: aTripId [
+    "Calcule les règlements pour un voyage via le service de settlement."
+    | trip |
+    trip := self findTrip: aTripId.
+    ^ TripSettlementService settleFor: trip balances
 ]

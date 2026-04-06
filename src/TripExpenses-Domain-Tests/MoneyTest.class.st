@@ -1,8 +1,9 @@
 Class {
 	#name : 'MoneyTest',
 	#superclass : 'TestCase',
-	#category : 'TripExpenses-Domain-Tests',
-	#package : 'TripExpenses-Domain-Tests'
+	#category : 'TripExpenses-Domain-Tests-TripExpenses-Domain-Tests-ValueObject',
+	#package : 'TripExpenses-Domain-Tests',
+	#tag : 'TripExpenses-Domain-Tests-ValueObject'
 }
 
 { #category : 'tests' }

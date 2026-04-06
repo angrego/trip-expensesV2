@@ -7,8 +7,9 @@ Class {
 		'bob',
 		'charlie'
 	],
-	#category : 'TripExpenses-Domain-Tests',
-	#package : 'TripExpenses-Domain-Tests'
+	#category : 'TripExpenses-Domain-Tests-TripExpenses-Domain-Tests-Rule',
+	#package : 'TripExpenses-Domain-Tests',
+	#tag : 'TripExpenses-Domain-Tests-Rule'
 }
 
 { #category : 'running' }

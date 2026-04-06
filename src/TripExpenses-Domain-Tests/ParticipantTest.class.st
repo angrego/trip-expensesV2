@@ -4,8 +4,9 @@ A ParticipantTest is a test class for testing the behavior of Participant
 Class {
 	#name : 'ParticipantTest',
 	#superclass : 'TestCase',
-	#category : 'TripExpenses-Domain-Tests',
-	#package : 'TripExpenses-Domain-Tests'
+	#category : 'TripExpenses-Domain-Tests-TripExpenses-Domain-Tests-Model',
+	#package : 'TripExpenses-Domain-Tests',
+	#tag : 'TripExpenses-Domain-Tests-Model'
 }
 
 { #category : 'tests' }

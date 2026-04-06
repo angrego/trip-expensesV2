@@ -4,8 +4,9 @@ Class {
 	#instVars : [
 		'filePath'
 	],
-	#category : 'TripExpenses-Infrastructure',
-	#package : 'TripExpenses-Infrastructure'
+	#category : 'TripExpenses-Infrastructure-TripExpenses-Infrastructure-STON',
+	#package : 'TripExpenses-Infrastructure',
+	#tag : 'TripExpenses-Infrastructure-STON'
 }
 
 { #category : 'as yet unclassified' }

@@ -7,8 +7,9 @@ Class {
 		'antoine',
 		'splitRule'
 	],
-	#category : 'TripExpenses-Domain-Tests',
-	#package : 'TripExpenses-Domain-Tests'
+	#category : 'TripExpenses-Domain-Tests-TripExpenses-Domain-Tests-Model',
+	#package : 'TripExpenses-Domain-Tests',
+	#tag : 'TripExpenses-Domain-Tests-Model'
 }
 
 { #category : 'running' }

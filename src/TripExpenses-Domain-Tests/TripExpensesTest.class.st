@@ -7,8 +7,9 @@ Class {
 		'bob',
 		'charlie'
 	],
-	#category : 'TripExpenses-Domain-Tests',
-	#package : 'TripExpenses-Domain-Tests'
+	#category : 'TripExpenses-Domain-Tests-TripExpenses-Domain-Tests-Model',
+	#package : 'TripExpenses-Domain-Tests',
+	#tag : 'TripExpenses-Domain-Tests-Model'
 }
 
 { #category : 'running' }
@@ -232,41 +233,6 @@ TripExpensesTest >> testPayerMustBeParticipant [
             gifts: {}
             date: Date today)
     ] raise: Error
-]
-
-{ #category : 'running' }
-TripExpensesTest >> testSettlementsEmptyWhenBalanced [
-    "Chacun paie exactement sa part"
-    trip addExpense: (Expense
-        description: 'Resto'
-        totalAmount: (Money amount: 90 currency: 'EUR')
-        payments: {
-            Payment participant: alice   amount: (Money amount: 30 currency: 'EUR').
-            Payment participant: bob     amount: (Money amount: 30 currency: 'EUR').
-            Payment participant: charlie amount: (Money amount: 30 currency: 'EUR') }
-        splitRule: self makeSplitRule
-        gifts: {}
-        date: Date today).
-    self assert: trip settlements isEmpty
-]
-
-{ #category : 'running' }
-TripExpensesTest >> testSettlementsEmptyWithNoExpenses [
-    self assert: trip settlements isEmpty
-]
-
-{ #category : 'running' }
-TripExpensesTest >> testSettlementsMultipleExpenses [
-    "Alice paie 90, Bob paie 90 → seul Charlie doit rembourser"
-    | settlements |    
-trip addExpense: (self makeExpense: 'Resto'   paidBy: alice amount: 90).
-    trip addExpense: (self makeExpense: 'Essence' paidBy: bob   amount: 90).
-
-    settlements := trip settlements.
-    self assert: settlements size equals: 2.
-    settlements do: [ :s |
-        self assert: s from   equals: charlie.
-        self assert: s amount amount equals: 30 ]
 ]
 
 { #category : 'running' }

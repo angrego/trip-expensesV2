@@ -4,8 +4,9 @@ Class {
 	#instVars : [
 		'store'
 	],
-	#category : 'TripExpenses-Infrastructure',
-	#package : 'TripExpenses-Infrastructure'
+	#category : 'TripExpenses-Infrastructure-TripExpenses-Infrastructure-InMemory',
+	#package : 'TripExpenses-Infrastructure',
+	#tag : 'TripExpenses-Infrastructure-InMemory'
 }
 
 { #category : 'instance creation' }
