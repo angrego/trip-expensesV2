@@ -18,10 +18,10 @@ TripDetailPresenter >> onBackRequested [
 ]
 
 { #category : 'event handling' }
-TripDetailPresenter >> onDeleteExpenseId: anAnouncement [
+TripDetailPresenter >> onDeleteExpenseId: anExpenseId [
 	"Appele par TripExpenseItemPresenter quand l utilisateur supprime une depense."
 
-	self model removeExpenseId: anAnouncement 
+	self model removeExpenseId: anExpenseId 
 ]
 
 { #category : 'event handling' }

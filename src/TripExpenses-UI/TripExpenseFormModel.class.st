@@ -65,8 +65,7 @@ TripExpenseFormModel >> addExpense: aDescription amount: anAmount payerId: aPaye
 					                   ifNone: [
 					                   Error signal:
 						                   'Participant introuvable : ' , pair key ].
-				              ParticipantWeight participant: p weight: pair value ]).
-Transcript showCr: 'avant buildGifts - gifts: ' , gifts printString.	
+				              ParticipantWeight participant: p weight: pair value ]).	
 [
 		gifts := self
 			         buildGiftsFromEntries: giftEntries
@@ -85,7 +84,6 @@ Transcript showCr: 'avant buildGifts - gifts: ' , gifts printString.
 				errorMessage := e messageText.
 				self valueChanged.
 				^ self ].
-			Transcript showCr: 'après buildGifts - gifts: ' , gifts printString.
 	service addExpense: expense toTrip: tripId.
 	self hide
 ]

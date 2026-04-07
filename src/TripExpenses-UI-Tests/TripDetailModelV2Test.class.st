@@ -78,6 +78,13 @@ TripDetailModelV2Test >> testAddExpenseAnnouncesValueChanged [
 ]
 
 { #category : 'tests - ajout dépense' }
+TripDetailModelV2Test >> testAddExpenseAppearsInExpenses [
+
+self addExpenseAmount: 60.
+self assert: model expenses size equals: 1
+]
+
+{ #category : 'tests - ajout dépense' }
 TripDetailModelV2Test >> testAddExpenseCreatesSettlement [
 	self addExpenseAmount: 60.
 	self assert: model settlements size equals: 1

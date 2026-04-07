@@ -234,6 +234,19 @@ TripDetailView >> renderEmptySettlements:aBoolean [
 ]
 
 { #category : 'rendering' }
+TripDetailView >> renderErrorMessage: aString [
+    | banner |
+    banner := self shadowedElementWithId: #'error-banner'.
+    (aString isNil or: [ aString isEmpty ])
+        ifTrue: [
+            banner style: 'display:none'.
+            banner textContent: '' ]
+        ifFalse: [
+            banner style: 'display:block'.
+            banner textContent: aString ]
+]
+
+{ #category : 'rendering' }
 TripDetailView >> renderShowExpenseForm: aBoolean [
     | container btn |
     container := self shadowedElementWithId: #'expense-form-container'.

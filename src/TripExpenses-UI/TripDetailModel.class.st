@@ -256,9 +256,7 @@ expenseFormModel show.
 { #category : 'accessing' }
 TripDetailModel >> showingExpenseForm [
 
-  expenseFormModel show.
-    errorMessage := nil.
-    self valueChanged
+ ^ expenseFormModel isShowing
 ]
 
 { #category : 'accessing' }
