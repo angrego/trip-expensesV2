@@ -6,20 +6,6 @@ Class {
 	#tag : 'Expense'
 }
 
-{ #category : 'rendering' }
-TripExpenseFormPresenter >> buildGiftEntries [
-
-	self model giftEntries ifNil: [ ^ #(  ) ].
-	^ (self model giftEntries collect: [ :e |
-			   Dictionary new
-				   at: 'entryId' put: e entryId;
-				   at: 'fromId' put: (e fromId ifNil: [ '' ]);
-				   at: 'toId' put: (e toId ifNil: [ '' ]);
-				   at: 'mode' put: e mode asString;
-				   at: 'amount' put: (e amount ifNil: [ 0 ]);
-				   yourself ]) asArray
-]
-
 { #category : 'view' }
 TripExpenseFormPresenter >> onAddExpense: anAnnouncement [
 
@@ -41,8 +27,12 @@ TripExpenseFormPresenter >> onAddExpense: anAnnouncement [
 ]
 
 { #category : 'view' }
+TripExpenseFormPresenter >> onAmountChanged: anAnnouncement [
+    self model setCurrentAmount: anAnnouncement amount
+]
+
+{ #category : 'view' }
 TripExpenseFormPresenter >> onGiftAdd [
-    Transcript showCr: 'onGiftAdd appelé'.
 
 	self model addGiftEntry
 ]
@@ -58,9 +48,62 @@ TripExpenseFormPresenter >> onGiftModeChanged: anAnnouncement [
 ]
 
 { #category : 'view' }
+TripExpenseFormPresenter >> onInclusionChanged: anAnnouncement [
+    | entry |
+    entry := self model participantEntries
+        detect: [ :e | e participantId = anAnnouncement participantId ]
+        ifNone: [ ^ self ].
+    entry included: anAnnouncement included
+]
+
+{ #category : 'view' }
+TripExpenseFormPresenter >> onPayerChanged: anAnnouncement [
+    self model setCurrentPayerId: anAnnouncement payerId
+]
+
+{ #category : 'view' }
+TripExpenseFormPresenter >> onWeightChanged: anAnnouncement [
+    | entry |
+    entry := self model participantEntries
+        detect: [ :e | e participantId = anAnnouncement participantId ]
+        ifNone: [ ^ self ].
+    entry weight: anAnnouncement weight
+]
+
+{ #category : 'rendering' }
+TripExpenseFormPresenter >> renderView [
+
+    self view
+        renderPayerOptions: (self model participantEntries collect: [ :e |
+            Array with: e participantId with: e name ]) asArray;
+        renderErrorMessage: (self model errorMessage ifNil: [ '' ]);
+        renderAddGiftButtonEnabled: (
+            self model currentPayerId isNotNil and: [
+                self model currentAmount isNotNil and: [
+                    self model currentAmount > 0 ] ]).
+    self
+        renderAllChildViewsForModels: self model giftEntries
+        atSlotNamed: #gifts
+]
+
+{ #category : 'rendering' }
+TripExpenseFormPresenter >> renderWeights [
+
+	self view renderParticipantWeightEntries:
+		(self model participantEntries collect: [ :e |
+				 Array
+					 with: e participantId
+					 with: e name
+					 with: e weight
+					 with: e included ]) asArray
+				currency: self model currency.
+]
+
+{ #category : 'view' }
 TripExpenseFormPresenter >> viewCreated [
 
 	super viewCreated.
+	self renderWeights.
 	self view
 		when: TripDetailAddExpenseRequested send: #onAddExpense: to: self;
 		when: TripDetailHideExpenseFormRequested
@@ -71,5 +114,15 @@ TripExpenseFormPresenter >> viewCreated [
 		when: TripDetailGiftModeChanged send: #onGiftModeChanged: to: self;
 		when: TripDetailGiftFromChanged send: #onGiftFromChanged: to: self;
 		when: TripDetailGiftToChanged send: #onGiftToChanged: to: self;
-		when: TripDetailGiftAmountChanged send: #onGiftAmountChanged: to: self.
+		when: TripDetailParticipantInclusionChanged
+		send: #onInclusionChanged:
+		to: self;
+		when: TripDetailParticipantWeightChanged
+		send: #onWeightChanged:
+		to: self;
+		when: TripDetailGiftAmountChanged
+		send: #onGiftAmountChanged:
+		to: self;
+		when: TripExpensePayerChanged send: #onPayerChanged: to: self;
+		when: TripExpenseAmountChanged send: #onAmountChanged: to: self
 ]

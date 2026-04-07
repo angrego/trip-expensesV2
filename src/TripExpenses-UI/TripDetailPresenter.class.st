@@ -25,6 +25,11 @@ TripDetailPresenter >> onDeleteExpenseId: anExpenseId [
 ]
 
 { #category : 'event handling' }
+TripDetailPresenter >> onExpenseAdded [
+    self model loadTrip
+]
+
+{ #category : 'event handling' }
 TripDetailPresenter >> onInclusionChanged: anAnnouncement [
     anAnnouncement included
         ifTrue:  [ self model includeParticipantId: anAnnouncement participantId ]

@@ -72,7 +72,13 @@ TripExpensesServerApp >> installAnnouncements [
 		installClass: TripDetailGiftAddRequested;
 		installClass: TripDetailGiftRemoveRequested;
 		installClass: TripDetailGiftModeChanged;
-		installClass: TripDetailGiftAmountChanged.
+		installClass: TripDetailGiftAmountChanged;
+		installClass: TripExpensePayerChanged;
+installClass: TripExpenseAmountChanged;
+installClass: TripGiftSliderChanged;
+installClass: TripGiftBeneficiaryToggled;
+installClass: TripGiftWeightChanged;
+installClass: TripGiftRemoveRequested.
 ]
 
 { #category : 'installing' }
@@ -89,5 +95,6 @@ TripExpensesServerApp >> installViews [
 		installClass: TripBalanceItemView;
 		installClass: TripExpenseItemView;
 		installClass: TripSettlementItemView;
-		installClass: TripExpenseFormView.
+		installClass: TripGiftEntryView;
+		installClass: TripExpenseFormView
 ]

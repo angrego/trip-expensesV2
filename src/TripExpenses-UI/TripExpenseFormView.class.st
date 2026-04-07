@@ -4,7 +4,8 @@ Class {
 	#instVars : [
 		'weightRows',
 		'amountSliders',
-		'payerOptions'
+		'payerOptions',
+		'currency'
 	],
 	#category : 'TripExpenses-UI-Expense',
 	#package : 'TripExpenses-UI',
@@ -13,8 +14,9 @@ Class {
 
 { #category : 'web resources' }
 TripExpenseFormView class >> style [
-    <webResource: #css>
-    ^ '
+
+	<webResource: #css>
+	^ '
     :host { display: block; }
     .expense-form { border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
     .expense-form h3 { margin: 0 0 1rem; font-size: 1rem; }
@@ -37,25 +39,28 @@ TripExpenseFormView class >> style [
     .amount-wrapper { display: flex; align-items: center; gap: .5rem; flex: 1; }
     .amount-slider { flex: 1; min-width: 60px; }
     .amount-number { width: 70px; font-size: .85rem; padding: .2rem .4rem; border: 1px solid #e0e0e0; border-radius: 6px; }
+#btn-add-gift:disabled { opacity: 0.4; cursor: not-allowed; }
     '
 ]
 
 { #category : 'web resources' }
 TripExpenseFormView class >> template [
-    <webResource: #html>
-    ^ '
+
+	<webResource: #html>
+	^ '
     <div id="expense-form" class="expense-form">
         <h3>Nouvelle depense</h3>
+<div id="error-banner" class="error-banner" style="display:none"></div>
         <label>Description</label>
         <input id="expense-desc" class="input" type="text" placeholder="Ex : Restaurant">
         <label>Montant</label>
-        <input id="expense-amount" class="input" type="number" min="0.01" step="0.01" placeholder="0.00">
+        <input id="expense-amount" class="input" type="number" min="0" step="1" placeholder="0.00">
         <label>Paye par</label>
         <select id="expense-payer" class="select"></select>
         <label>Repartition</label>
         <div id="participant-weights"></div>
         <div class="section-subtitle">Cadeaux</div>
-        <div id="gift-entries"></div>
+        <slot name="gifts"></slot>
         <button id="btn-add-gift" class="btn-secondary btn-small">+ Ajouter un cadeau</button>
         <div class="form-actions">
             <button id="btn-add" class="btn-primary">Ajouter</button>
@@ -225,19 +230,19 @@ TripExpenseFormView >> buildNameLabelFor: dict [
 
 { #category : 'rendering' }
 TripExpenseFormView >> buildParticipantSelectNamed: aName value: aValue [
-    | select |
-    select := CpHtmlElement newWithTag: 'select'.
-    select attributeAt: 'class' put: 'select-small'.
-    payerOptions ifNotNil: [
-        payerOptions do: [ :dict |
-            | opt |
-            opt := CpHtmlElement newWithTag: 'option'.
-            opt attributeAt: 'value' put: (dict at: 'id').
-            (dict at: 'id') = aValue ifTrue: [
-                opt attributeAt: 'selected' put: '' ].
-            opt textContent: (dict at: 'name').
-            select appendChild: opt ] ].
-    ^ select
+
+	| select |
+	select := CpHtmlElement newWithTag: 'select'.
+	select attributeAt: 'class' put: 'select-small'.
+	payerOptions ifNotNil: [
+			payerOptions do: [ :arr |
+					| opt |
+					opt := CpHtmlElement newWithTag: 'option'.
+					opt attributeAt: 'value' put: arr first.
+					arr first = aValue ifTrue: [ opt attributeAt: 'selected' put: '' ].
+					opt textContent: (arr at: 2).
+					select appendChild: opt ] ].
+	^ select
 ]
 
 { #category : 'rendering' }
@@ -248,40 +253,55 @@ TripExpenseFormView >> buildWeightInputFor: dict checkbox: checkbox [
     weightInput attributeAt: 'min' put: '1'.
     weightInput attributeAt: 'class' put: 'weight-input'.
     weightInput propertyAt: 'value' put: (dict at: 'weight') printString.
-    (dict at: 'included') ifFalse: [
-        weightInput attributeAt: 'disabled' put: '' ].
     checkbox
         when: CpChangeEvent
         do: [
-            (checkbox propertyAt: 'checked')
-                ifTrue: [ weightInput removeAttributeAt: 'disabled' ]
-                ifFalse: [ weightInput attributeAt: 'disabled' put: '' ].
+            | included |
+            included := checkbox propertyAt: 'checked'.
+            weightInput attributeAt: 'disabled' put: ''.
+            included ifTrue: [ weightInput removeAttributeAt: 'disabled' ].
+            self serverAnnounce: (TripDetailParticipantInclusionChanged
+                participantId: (dict at: 'participantId')
+                included: included).
             self recalculateShares ]
         for: self.
     weightInput
         when: CpInputEvent
-        do: [ self recalculateShares ]
+        do: [
+            | w |
+            w := weightInput propertyAt: 'value'.
+            w isEmpty ifFalse: [
+                self serverAnnounce: (TripDetailParticipantWeightChanged
+                    participantId: (dict at: 'participantId')
+                    weight: w asNumber truncated) ].
+            self recalculateShares ]
         for: self.
     ^ weightInput
+
 ]
 
 { #category : 'rendering' }
 TripExpenseFormView >> buildWeightRowFor: dict appendTo: container [
-    | row checkbox nameLabel weightInput shareLabel |
-    row := CpHtmlElement newWithTag: 'div'.
-    row attributeAt: 'class' put: 'weight-row'.
-    checkbox := self buildCheckboxFor: dict.
-    nameLabel := self buildNameLabelFor: dict.
-    weightInput := self buildWeightInputFor: dict checkbox: checkbox.
-    shareLabel := CpHtmlElement newWithTag: 'span'.
-    shareLabel attributeAt: 'class' put: 'share-label'.
-    shareLabel textContent: '–'.
-    row appendChild: checkbox.
-    row appendChild: nameLabel.
-    row appendChild: weightInput.
-    row appendChild: shareLabel.
-    container appendChild: row.
-    ^ (dict at: 'id') -> { checkbox. weightInput. shareLabel }
+
+	| row checkbox nameLabel weightInput shareLabel |
+	row := CpHtmlElement newWithTag: 'div'.
+	row attributeAt: 'class' put: 'weight-row'.
+	checkbox := self buildCheckboxFor: dict.
+	checkbox attributeAt: 'data-pid' put: (dict at: 'participantId').
+	nameLabel := self buildNameLabelFor: dict.
+	weightInput := self buildWeightInputFor: dict checkbox: checkbox.
+	shareLabel := CpHtmlElement newWithTag: 'span'.
+	shareLabel attributeAt: 'class' put: 'share-label'.
+	shareLabel textContent: '–'.
+	row appendChild: checkbox.
+	row appendChild: nameLabel.
+	row appendChild: weightInput.
+	row appendChild: shareLabel.
+	container appendChild: row.
+	^ (dict at: 'participantId') -> {
+		  checkbox.
+		  weightInput.
+		  shareLabel }
 ]
 
 { #category : 'rendering' }
@@ -309,11 +329,11 @@ TripExpenseFormView >> computeTotalWeight [
 
 { #category : 'rendering' }
 TripExpenseFormView >> currencyFromDOM [
-    ^ (self shadowedElementWithId: #'trip-name')
-        attributeAt: 'data-currency'
+
+    ^ currency ifNil: [ '' ]
 ]
 
-{ #category : 'initialization' }
+{ #category : 'event handling' }
 TripExpenseFormView >> handleAddExpense [
 
 	| desc amount payerId weights |
@@ -345,14 +365,31 @@ TripExpenseFormView >> handleAddExpense [
 			 weightsString: weights asArray)
 ]
 
-{ #category : 'initialization' }
+{ #category : 'event handling' }
 TripExpenseFormView >> handleAddGift [
-    self serverAnnounce: TripDetailGiftAddRequested
+self serverAnnounce: TripDetailGiftAddRequested
 ]
 
-{ #category : 'initialization' }
+{ #category : 'event handling' }
+TripExpenseFormView >> handleAmountChanged [
+    | val |
+    val := (self shadowedElementWithId: #'expense-amount') propertyAt: 'value'.
+    val isEmpty ifTrue: [ ^ self ].
+    [ self serverAnnounce: (TripExpenseAmountChanged amount: val asNumber) ]
+        on: Error
+        do: [ "ignorer valeurs invalides" ]
+]
+
+{ #category : 'event handling' }
 TripExpenseFormView >> handleHideForm [
     self serverAnnounce: TripDetailHideExpenseFormRequested
+]
+
+{ #category : 'event handling' }
+TripExpenseFormView >> handlePayerChanged [
+| payerId |
+    payerId := (self shadowedElementWithId: #'expense-payer') propertyAt: 'value'.
+    self serverAnnounce: (TripExpensePayerChanged payerId: payerId)
 ]
 
 { #category : 'initialization' }
@@ -362,8 +399,12 @@ TripExpenseFormView >> initializeShadowRoot [
         when: CpClickEvent basicPrimary send: #handleAddExpense to: self.
     (self shadowedElementWithId: #'btn-cancel')
         when: CpClickEvent basicPrimary send: #handleHideForm to: self.
-    (self shadowedElementWithId: #'btn-add-gift')
-        when: CpClickEvent basicPrimary send: #handleAddGift to: self
+(self shadowedElementWithId: #'expense-payer')
+        when: CpChangeEvent send: #handlePayerChanged to: self.
+(self shadowedElementWithId: #'btn-add-gift')
+    when: CpClickEvent basicPrimary send: #handleAddGift to: self.
+    (self shadowedElementWithId: #'expense-amount')
+        when: CpInputEvent send: #handleAmountChanged to: self
 ]
 
 { #category : 'rendering' }
@@ -386,8 +427,7 @@ TripExpenseFormView >> recalculateShares [
 	| amount totalWeight currency |
 	weightRows ifNil: [ ^ self ].
 	amount := self readExpenseAmount.
-(self shadowedElementsWithClass: 'amount-slider') do: [ :s |
-    s attributeAt: 'max' put: amount printString ].
+
 	currency := [ self currencyFromDOM ]
 		            on: Error
 		            do: [ '' ].
@@ -396,6 +436,15 @@ TripExpenseFormView >> recalculateShares [
 		updateShareLabels: amount
 		totalWeight: totalWeight
 		currency: currency
+]
+
+{ #category : 'view' }
+TripExpenseFormView >> renderAddGiftButtonEnabled: aBoolean [
+    | btn |
+    btn := self shadowedElementWithId: #'btn-add-gift'.
+    aBoolean
+        ifTrue:  [ btn removeAttributeAt: 'disabled' ]
+        ifFalse: [ btn attributeAt: 'disabled' put: '' ]
 ]
 
 { #category : 'rendering' }
@@ -423,14 +472,20 @@ TripExpenseFormView >> renderGiftEntries: aCollectionOfDicts [
 ]
 
 { #category : 'rendering' }
-TripExpenseFormView >> renderParticipantWeightEntries: aCollectionOfDicts [
-
-	| container |
+TripExpenseFormView >> renderParticipantWeightEntries: aCollectionOfArrays [
+    | container |
     container := self shadowedElementWithId: #'participant-weights'.
     container removeChildren.
     weightRows := OrderedCollection new.
-    aCollectionOfDicts isEmpty ifTrue: [ ^ self ].
-    weightRows addAll: (aCollectionOfDicts collect: [ :dict |
+    aCollectionOfArrays isEmpty ifTrue: [ ^ self ].
+    weightRows addAll: (aCollectionOfArrays collect: [ :arr |
+        | dict |
+        dict := Dictionary new
+            at: 'participantId' put: (arr at: 1);
+            at: 'name'          put: (arr at: 2);
+            at: 'weight'        put: (arr at: 3);
+            at: 'included'      put: (arr at: 4);
+            yourself.
         self buildWeightRowFor: dict appendTo: container ]).
     (self shadowedElementWithId: #'expense-amount')
         when: CpInputEvent
@@ -440,16 +495,41 @@ TripExpenseFormView >> renderParticipantWeightEntries: aCollectionOfDicts [
 ]
 
 { #category : 'rendering' }
-TripExpenseFormView >> renderPayerOptions: aCollectionOfDicts [
+TripExpenseFormView >> renderParticipantWeightEntries: aCollectionOfArrays currency: aCurrency [
+
+	| container |
+	container := self shadowedElementWithId: #'participant-weights'.
+	container removeChildren.
+	currency := aCurrency.
+	weightRows := OrderedCollection new.
+	aCollectionOfArrays isEmpty ifTrue: [ ^ self ].
+	weightRows addAll: (aCollectionOfArrays collect: [ :arr |
+				 | dict |
+				 dict := Dictionary new
+					         at: 'participantId' put: (arr at: 1);
+					         at: 'name' put: (arr at: 2);
+					         at: 'weight' put: (arr at: 3);
+					         at: 'included' put: (arr at: 4);
+					         yourself.
+				 self buildWeightRowFor: dict appendTo: container ]).
+	(self shadowedElementWithId: #'expense-amount')
+		when: CpInputEvent
+		do: [ self recalculateShares ]
+		for: self.
+	self recalculateShares
+]
+
+{ #category : 'rendering' }
+TripExpenseFormView >> renderPayerOptions: aCollectionOfArrays [
     | select |
-    payerOptions := aCollectionOfDicts.
+    payerOptions := aCollectionOfArrays.
     select := self shadowedElementWithId: #'expense-payer'.
     select removeChildren.
-    aCollectionOfDicts do: [ :dict |
+    aCollectionOfArrays do: [ :arr |
         | opt |
         opt := CpHtmlElement newWithTag: 'option'.
-        opt attributeAt: 'value' put: (dict at: 'id').
-        opt textContent: (dict at: 'name').
+        opt attributeAt: 'value' put: (arr at: 1).
+        opt textContent: (arr at: 2).
         select appendChild: opt ]
 ]
 

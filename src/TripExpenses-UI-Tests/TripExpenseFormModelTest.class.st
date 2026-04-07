@@ -55,53 +55,6 @@ TripExpenseFormModelTest >> testAddExpenseWithEmptyDescriptionKeepsFormShowing [
 ]
 
 { #category : 'running' }
-TripExpenseFormModelTest >> testAddExpenseWithGlobalShareGiftAliceBalanceIsCorrect [
-    "Alice paie 400, part 100, offre 200 → solde +100"
-    | trip expense aliceParticipant |
-    model show.
-    model addGiftEntry.
-    model setGiftEntry: model giftEntries first fromId: aliceId.
-    model setGiftEntry: model giftEntries first mode: #globalShare.
-    model setGiftEntry: model giftEntries first amount: 200.
-    model
-        addExpense: 'Gite'
-        amount: 400
-        payerId: aliceId
-        weights: { aliceId -> 1. bobId -> 1. charlieId -> 2 }.
-    trip := service findTrip: tripId.
-    expense := trip expenses first.
-    aliceParticipant := trip participants detect: [ :p | p id value = aliceId ].
-    self assert: (expense balanceFor: aliceParticipant) amount equals: 100
-]
-
-{ #category : 'running' }
-TripExpenseFormModelTest >> testAddExpenseWithGlobalShareGiftDistributesAmount [
-    "Alice paie 400, offre 200 globalement.
-     Bob poids 1, Charlie poids 2.
-     Bob reçoit 200 * 1/3 ≈ 66.67, Charlie reçoit 200 * 2/3 ≈ 133.33"
-    | trip expense bobParticipant charlieParticipant |
-    model show.
-    model addGiftEntry.
-    model setGiftEntry: model giftEntries first fromId: aliceId.
-    model setGiftEntry: model giftEntries first mode: #globalShare.
-    model setGiftEntry: model giftEntries first amount: 200.
-    model
-        addExpense: 'Gite'
-        amount: 400
-        payerId: aliceId
-        weights: { aliceId -> 1. bobId -> 1. charlieId -> 2 }.
-    trip := service findTrip: tripId.
-    expense := trip expenses first.
-    self assert: expense gifts size equals: 2.
-    bobParticipant := trip participants detect: [ :p | p id value = bobId ].
-    charlieParticipant := trip participants detect: [ :p | p id value = charlieId ].
-    self assert: (expense gifts detect: [ :g | g to = bobParticipant ]) amount
-        equals: (Money amount: 200/3 currency: 'EUR').
-    self assert: (expense gifts detect: [ :g | g to = charlieParticipant ]) amount
-        equals: (Money amount: 400/3 currency: 'EUR')
-]
-
-{ #category : 'running' }
 TripExpenseFormModelTest >> testAddExpenseWithZeroAmountKeepsFormShowing [
     model show.
     model addExpense: 'Resto' amount: 0 payerId: aliceId.
@@ -109,16 +62,94 @@ TripExpenseFormModelTest >> testAddExpenseWithZeroAmountKeepsFormShowing [
 ]
 
 { #category : 'running' }
-TripExpenseFormModelTest >> testAddGiftEntryIncreasesCount [
+TripExpenseFormModelTest >> testAddGiftEntryCreatesTripGiftEntryModel [
+model show.
+    model setCurrentPayerId: aliceId.
+    model setCurrentAmount: 90.
+    model addGiftEntry.
+    self assert: (model giftEntries first isKindOf: TripGiftEntryModel)
+]
+
+{ #category : 'running' }
+TripExpenseFormModelTest >> testAddGiftEntryHasAllParticipantsAsBeneficiaries [
     model show.
+    model setCurrentPayerId: aliceId.
+    model setCurrentAmount: 90.
+    model addGiftEntry.
+    "Alice est le payeur — 2 bénéficiaires restants"
+    self assert: model giftEntries first beneficiaries size equals: 2
+]
+
+{ #category : 'running' }
+TripExpenseFormModelTest >> testAddGiftEntryIncreasesCount [
+
+
+    model show.
+    model setCurrentPayerId: aliceId.
+    model setCurrentAmount: 90.
     model addGiftEntry.
     self assert: model giftEntries size equals: 1
+]
+
+{ #category : 'running' }
+TripExpenseFormModelTest >> testCanAddGiftEntryAnnouncesValueChanged [
+    | announced |
+    model show.
+    model setCurrentPayerId: aliceId.
+    model setCurrentAmount: 90.
+    announced := false.
+    model when: ValueChanged do: [ announced := true ].
+    model addGiftEntry.
+    self assert: announced
+]
+
+{ #category : 'running' }
+TripExpenseFormModelTest >> testCanAddGiftEntryWithPayerAndAmount [
+    model show.
+    model setCurrentPayerId: aliceId.
+    model setCurrentAmount: 90.
+    model addGiftEntry.
+    self assert: model giftEntries size equals: 1
+]
+
+{ #category : 'running' }
+TripExpenseFormModelTest >> testCannotAddGiftEntryWithoutAmount [
+    model show.
+    model setCurrentPayerId: aliceId.
+    model addGiftEntry.
+    self assert: model giftEntries isEmpty
+]
+
+{ #category : 'running' }
+TripExpenseFormModelTest >> testCannotAddGiftEntryWithoutPayer [
+    model show.
+    model addGiftEntry.
+    self assert: model giftEntries isEmpty
 ]
 
 { #category : 'running' }
 TripExpenseFormModelTest >> testGiftEntriesInitiallyEmpty [
     model show.
     self assert: model giftEntries isEmpty
+]
+
+{ #category : 'running' }
+TripExpenseFormModelTest >> testGiftEntryMaxAmountMatchesCurrentAmount [
+    model show.
+    model setCurrentPayerId: aliceId.
+    model setCurrentAmount: 90.
+    model addGiftEntry.
+    self assert: model giftEntries first maxAmount equals: 90
+]
+
+{ #category : 'running' }
+TripExpenseFormModelTest >> testGiftEntryPayerIsSet [
+    model show.
+    model setCurrentPayerId: aliceId.
+    model setCurrentAmount: 90.
+    model addGiftEntry.
+    self deny: (model giftEntries first beneficiaries 
+        anySatisfy: [ :b | b participantId = aliceId ])
 ]
 
 { #category : 'running' }
@@ -134,23 +165,38 @@ TripExpenseFormModelTest >> testInitiallyNotShowing [
 ]
 
 { #category : 'running' }
-TripExpenseFormModelTest >> testSetGiftFromIdUpdatesEntry [
-    | entry |
-model show.
+TripExpenseFormModelTest >> testRemoveGiftEntryModel [
+   | entryId |   
+ model show.
+    model setCurrentPayerId: aliceId.
+    model setCurrentAmount: 90.
     model addGiftEntry.
-    entry := model giftEntries first.
-    model setGiftEntry: entry fromId: aliceId.
-    self assert: entry fromId equals: aliceId
+    model addGiftEntry.
+ 
+    entryId := model giftEntries first entryId.
+    model removeGiftEntryId: entryId.
+    self assert: model giftEntries size equals: 1
 ]
 
 { #category : 'running' }
-TripExpenseFormModelTest >> testSetGiftToIdUpdatesEntry [
-    | entry |
+TripExpenseFormModelTest >> testSetAmountUpdatesGiftEntriesMaxAmount [
+    model show.
+    model setCurrentPayerId: aliceId.
+    model setCurrentAmount: 90.
+    model addGiftEntry.
+    model setCurrentAmount: 120.
+    self assert: model giftEntries first maxAmount equals: 120
+]
+
+{ #category : 'running' }
+TripExpenseFormModelTest >> testSetPayerUpdatesGiftEntries [
+    "Quand le payeur change, tous les gift entries excluent ce payeur."
     model show.
     model addGiftEntry.
-    entry := model giftEntries first.
-    model setGiftEntry: entry toId: bobId.
-    self assert: entry toId equals: bobId
+    model addGiftEntry.
+    model setCurrentPayerId: aliceId.
+    model giftEntries do: [ :g |
+        self deny: (g beneficiaries anySatisfy: [ :b | b participantId = aliceId ]) ]
 ]
 
 { #category : 'running' }
@@ -187,4 +233,12 @@ TripExpenseFormModelTest >> testShowFormResetsGiftEntries [
 TripExpenseFormModelTest >> testShowFormSetsIsShowing [
     model show.
     self assert: model isShowing
+]
+
+{ #category : 'running' }
+TripExpenseFormModelTest >> testShowResetsGiftEntries [
+    model show.
+    model addGiftEntry.
+    model show.
+    self assert: model giftEntries isEmpty
 ]

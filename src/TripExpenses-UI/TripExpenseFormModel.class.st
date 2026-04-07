@@ -14,7 +14,9 @@ Class {
 		'participantEntries',
 		'giftEntries',
 		'errorMessage',
-		'showing'
+		'showing',
+		'currentPayerId',
+		'currentAmount'
 	],
 	#category : 'TripExpenses-UI-Expense',
 	#package : 'TripExpenses-UI',
@@ -110,12 +112,18 @@ TripExpenseFormModel >> addExpense: aDescription amount: anAmount payerId: aPaye
 
 { #category : 'adding' }
 TripExpenseFormModel >> addGiftEntry [
-Transcript showCr: 'addGiftEntry - giftEntries avant: ' , giftEntries printString.
-	giftEntries add: TripExpenseGiftEntry new.
-	
-	    Transcript showCr: 'addGiftEntry - giftEntries après: ' , giftEntries printString.
-
-	self valueChanged
+    | payer entry |
+    (currentPayerId isNil or: [ currentPayerId isEmpty ]) ifTrue: [ ^ self ].
+    (currentAmount isNil or: [ currentAmount <= 0 ]) ifTrue: [ ^ self ].
+    payer := participantEntries
+        detect: [ :e | e participantId = currentPayerId ]
+        ifNone: [ ^ self ].
+    entry := TripGiftEntryModel
+        fromParticipant: payer participant
+        maxAmount: currentAmount
+        beneficiaries: participantEntries.
+    giftEntries add: entry.
+    self valueChanged
 ]
 
 { #category : 'accessing' }
@@ -184,9 +192,24 @@ TripExpenseFormModel >> buildSingleGiftFromEntry: anEntry trip: aTrip splitRule:
 ]
 
 { #category : 'accessing' }
+TripExpenseFormModel >> currency [
+    ^ currency
+]
+
+{ #category : 'accessing' }
+TripExpenseFormModel >> currentAmount [
+    ^ currentAmount
+]
+
+{ #category : 'accessing' }
 TripExpenseFormModel >> currentParticipantWeights [
 ^ participantEntries collect: [ :e |
         e participantId -> (e included ifTrue: [ e weight ] ifFalse: [ 0 ]) ]
+]
+
+{ #category : 'accessing' }
+TripExpenseFormModel >> currentPayerId [
+    ^ currentPayerId
 ]
 
 { #category : 'accessing' }
@@ -242,6 +265,25 @@ TripExpenseFormModel >> service: aTripApplicationService [
 ]
 
 { #category : 'accessing' }
+TripExpenseFormModel >> setCurrentAmount: aNumber [
+    currentAmount := aNumber.
+    giftEntries do: [ :g | g setMaxAmount: aNumber ].
+    self valueChanged
+]
+
+{ #category : 'accessing' }
+TripExpenseFormModel >> setCurrentPayerId: aPayerId [
+
+	currentPayerId := aPayerId.
+	giftEntries do: [ :g |
+			| payer |
+			payer := participantEntries
+				         detect: [ :e | e participantId = aPayerId ]
+				         ifNone: [ nil ].
+			payer ifNotNil: [ g setFromParticipant: payer participant ] ].
+]
+
+{ #category : 'accessing' }
 TripExpenseFormModel >> setGiftEntry: anEntry amount: aNumber [
     anEntry amount: aNumber
 ]
@@ -278,12 +320,17 @@ TripExpenseFormModel >> setGiftEntryId: anId mode: aSymbol [
 
 { #category : 'actions' }
 TripExpenseFormModel >> show [
-    | trip |
+
+| trip |
     trip := service findTrip: tripId.
     participantEntries := trip participants collect: [ :p |
         TripExpenseParticipantEntry forParticipant: p ].
-    giftEntries := OrderedCollection new.
-    errorMessage := nil.
+    giftEntries    := OrderedCollection new.
+    errorMessage   := nil.
+    currentAmount  := nil.
+    currentPayerId := participantEntries isEmpty
+        ifTrue:  [ nil ]
+        ifFalse: [ participantEntries first participantId ].
     showing := true.
     self valueChanged
 ]
@@ -297,4 +344,23 @@ TripExpenseFormModel >> tripId: anId [
     currency := trip currency.
     participantEntries := trip participants collect: [ :p |
         TripExpenseParticipantEntry forParticipant: p ]
+]
+
+{ #category : 'accessing' }
+TripExpenseFormModel >> updateWeightsFrom: aCollectionOfArrays [
+
+	aCollectionOfArrays do: [ :arr |
+			| pid w |
+			pid := arr first.
+			w := arr at: 2.
+			participantEntries
+				detect: [ :e | e participantId = pid ]
+				ifFound: [ :e |
+						w > 0
+							ifTrue: [
+									e included: true.
+									e weight: w ]
+							ifFalse: [
+									e included: false.
+									e weight: 1 ] ] ]
 ]

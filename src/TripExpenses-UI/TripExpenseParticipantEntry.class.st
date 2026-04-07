@@ -5,7 +5,8 @@ Class {
 		'participantId',
 		'name',
 		'weight',
-		'included'
+		'included',
+		'participant'
 	],
 	#category : 'TripExpenses-UI-Expense',
 	#package : 'TripExpenses-UI',
@@ -15,10 +16,11 @@ Class {
 { #category : 'as yet unclassified' }
 TripExpenseParticipantEntry class >> forParticipant: aParticipant [
     ^ self new
+        participant:   aParticipant;
         participantId: aParticipant id value;
-        name: aParticipant name;
-        included: true;
-        weight: 1;
+        name:          aParticipant name;
+        included:      true;
+        weight:        1;
         yourself
 ]
 
@@ -40,6 +42,16 @@ TripExpenseParticipantEntry >> name [
 { #category : 'accessing' }
 TripExpenseParticipantEntry >> name: aString [
     name := aString
+]
+
+{ #category : 'accessing' }
+TripExpenseParticipantEntry >> participant [
+	^participant
+]
+
+{ #category : 'accessing' }
+TripExpenseParticipantEntry >> participant: aParticipant [ 
+	participant := aParticipant
 ]
 
 { #category : 'accessing' }
