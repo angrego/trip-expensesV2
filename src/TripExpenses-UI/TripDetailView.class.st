@@ -7,7 +7,8 @@ Class {
 	#name : 'TripDetailView',
 	#superclass : 'CpView',
 	#instVars : [
-		'weightRows'
+		'weightRows',
+		'payerOptions'
 	],
 	#category : 'TripExpenses-UI-TripDetail',
 	#package : 'TripExpenses-UI',
@@ -44,13 +45,41 @@ TripDetailView class >> style [
  .weight-row input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; }
  .weight-row input[type=number]   { width: 60px; border: 1px solid #ccc; border-radius: 6px; padding: .3rem .4rem; font-size: .95rem; text-align: center; }
  .share-label { min-width: 80px; font-size: .9rem; color: #444; font-weight: 500; }
+.participant-name { min-width: 80px; font-size: .9rem; }
+.gift-row {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: .5rem;
+    flex-wrap: wrap;
+}
+.select-small {
+    font-size: .85rem;
+    padding: .2rem .4rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: white;
+    flex: 1;
+    min-width: 80px;
+}
+.btn-remove {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #993c1d;
+    font-size: .85rem;
+    padding: .2rem .4rem;
+    border-radius: 4px;
+}
+.btn-remove:hover { background: #fee; }
 	'
 ]
 
 { #category : 'web resources' }
 TripDetailView class >> template [
-    <webResource: #html>
-    ^ '
+
+	<webResource: #html>
+	^ '
     <div class="header">
         <button id="btn-back" class="btn-back" title="Retour">&#8592;</button>
         <div>
@@ -66,26 +95,11 @@ TripDetailView class >> template [
     </div>
     <div class="section">
         <div class="section-title">Depenses</div>
-        <slot name="expenses"></slot>
-        <div id="expense-form" class="expense-form" style="display:none">
-            <h3>Nouvelle depense</h3>
-            <label>Description</label>
-            <input id="expense-desc" class="input" type="text" placeholder="Ex : Restaurant">
-            <label>Montant</label>
-            <input id="expense-amount" class="input" type="number" min="0.01" step="0.01" placeholder="0.00">
-            <label>Paye par</label>
-            <select id="expense-payer" class="select"></select>
-            <label>Repartition</label>
-            <div id="participant-weights"></div>
-            <div class="section-subtitle">Cadeaux</div>
-            <div id="gift-entries"></div>
-            <button id="btn-add-gift" class="btn-secondary btn-small">+ Ajouter un cadeau</button>
-            <div class="form-actions">
-                <button id="btn-add" class="btn-primary">Ajouter</button>
-                <button id="btn-cancel" class="btn-secondary">Annuler</button>
-            </div>
-        </div>
-        <button id="btn-show-form" class="btn-primary">+ Ajouter une depense</button>
+<slot name="expenses"></slot>
+        <div id="expense-form-container">
+    <slot name="expenseForm"></slot>
+</div>
+<button id="btn-show-form" class="btn-primary">+ Ajouter une depense</button>
     </div>
     <div class="section">
         <div class="section-title">Balances</div>
@@ -100,9 +114,39 @@ TripDetailView class >> template [
 ]
 
 { #category : 'rendering' }
-TripDetailView >> currencyFromDOM [
-    ^ (self shadowedElementWithId: #'trip-name')
-        attributeAt: 'data-currency'
+TripDetailView >> buildGiftEntries [
+
+	| entries |
+	entries := self model giftEntries.
+	entries ifNil: [ ^ #(  ) ].
+	^ (entries collect: [ :e |
+			   Dictionary new
+				   at: 'entryId' put: e entryId;
+				   at: 'fromId' put: (e fromId ifNil: [ '' ]);
+				   at: 'toId' put: (e toId ifNil: [ '' ]);
+				   at: 'mode' put: e mode asString;
+				   at: 'amount' put: (e amount ifNil: [ 0 ]);
+				   yourself ]) asArray
+]
+
+{ #category : 'rendering' }
+TripDetailView >> buildGiftModeSelectFor: dict [
+    | select mode |
+    mode := dict at: 'mode'.
+    select := CpHtmlElement newWithTag: 'select'.
+    select attributeAt: 'class' put: 'select-small'.
+    #('fixed' 'share') do: [ :m |
+        | opt |
+        opt := CpHtmlElement newWithTag: 'option'.
+        opt attributeAt: 'value' put: m.
+        mode = m ifTrue: [ opt attributeAt: 'selected' put: '' ].
+        opt textContent: (m = 'fixed' ifTrue: [ 'montant fixe' ] ifFalse: [ 'payer la part' ]).
+        select appendChild: opt ].
+    select
+        when: CpChangeEvent
+        do: [ self handleGiftModeChange: select forEntry: (dict at: 'entryId') ]
+        for: self.
+    ^ select
 ]
 
 { #category : 'event handling' }
@@ -134,8 +178,26 @@ TripDetailView >> handleAddExpense [
 ]
 
 { #category : 'event handling' }
+TripDetailView >> handleAddGift [
+self serverAnnounce: TripDetailGiftAddRequested
+]
+
+{ #category : 'event handling' }
 TripDetailView >> handleBack [
 	self serverAnnounce: TripDetailBackRequested
+]
+
+{ #category : 'rendering' }
+TripDetailView >> handleGiftModeChange: aSelect forEntry: anEntryId [
+    | newMode amountInput |
+    newMode := (aSelect propertyAt: 'value') asSymbol.
+    amountInput := aSelect nextElementSibling.
+    newMode = #share
+        ifTrue:  [ amountInput attributeAt: 'style' put: 'display:none' ]
+        ifFalse: [ amountInput removeAttributeAt: 'style' ].
+    self serverAnnounce: (TripDetailGiftModeChanged
+        entryId: anEntryId
+        mode: newMode)
 ]
 
 { #category : 'event handling' }
@@ -154,60 +216,7 @@ TripDetailView >> initializeShadowRoot [
     (self shadowedElementWithId: #'btn-back')
         when: CpClickEvent basicPrimary send: #handleBack to: self.
     (self shadowedElementWithId: #'btn-show-form')
-        when: CpClickEvent basicPrimary send: #handleShowForm to: self.
-    (self shadowedElementWithId: #'btn-add')
-        when: CpClickEvent basicPrimary send: #handleAddExpense to: self.
-    (self shadowedElementWithId: #'btn-cancel')
-        when: CpClickEvent basicPrimary send: #handleHideForm to: self.
-    (self shadowedElementWithId: #'btn-add-gift')
-        when: CpClickEvent basicPrimary send: #handleAddGift to: self
-]
-
-{ #category : 'rendering' }
-TripDetailView >> recalculateShares [
-
-	| amountStr amount totalWeight currency |
-	weightRows ifNil: [ ^ self ].
-	amountStr := (self shadowedElementWithId: #'expense-amount')
-		             propertyAt: 'value'.
-	amount := amountStr isEmpty
-		          ifTrue: [ 0 ]
-		          ifFalse: [ amountStr asNumber ].
-	currency := [ self currencyFromDOM ]
-		            on: Error
-		            do: [ '' ].
-
-	totalWeight := weightRows inject: 0 into: [ :sum :assoc |
-			               | cb |
-			               cb := assoc value first.
-			               (cb propertyAt: 'checked')
-				               ifTrue: [
-						               | w |
-						               w := assoc value second propertyAt: 'value'.
-						               w := w isEmpty
-							                    ifTrue: [ 1 ]
-							                    ifFalse: [ w asNumber ].
-						               sum + w ]
-				               ifFalse: [ sum ] ].
-
-	weightRows do: [ :assoc |
-			| cb inp label share text |
-			cb := assoc value first.
-			inp := assoc value second.
-			label := assoc value third.
-			(cb propertyAt: 'checked')
-				ifTrue: [
-						| w |
-						w := inp propertyAt: 'value'.
-						w := w isEmpty
-							     ifTrue: [ 1 ]
-							     ifFalse: [ w asNumber ].
-						share := totalWeight = 0
-							         ifTrue: [ 0 ]
-							         ifFalse: [ amount * w / totalWeight roundTo: 0.01 ].
-						text := share printString , ' ' , currency ]
-				ifFalse: [ text := '–' ].
-			label textContent: text ]
+        when: CpClickEvent basicPrimary send: #handleShowForm to: self
 ]
 
 { #category : 'rendering' }
@@ -225,108 +234,17 @@ TripDetailView >> renderEmptySettlements:aBoolean [
 ]
 
 { #category : 'rendering' }
-TripDetailView >> renderErrorMessage: aString [
-	| banner |
-	banner := self shadowedElementWithId: #'error-banner'.
-	aString isEmpty
-		ifTrue: [
-				banner style: 'display:none'.
-				banner textContent: '' ]
-		ifFalse: [
-				banner style: 'display:block'.
-				banner textContent: aString ]
-]
-
-{ #category : 'rendering' }
-TripDetailView >> renderParticipantWeightEntries: aCollectionOfDicts [
-
-	| container |
-	container := self shadowedElementWithId: #'participant-weights'.
-	container removeChildren.
-	weightRows := OrderedCollection new.
-	aCollectionOfDicts isEmpty ifTrue: [ ^ self ].
-	weightRows addAll: (aCollectionOfDicts collect: [ :dict |
-				 | row checkbox weightInput shareLabel |
-				 row := CpHtmlElement newWithTag: 'div'.
-				 row attributeAt: 'class' put: 'weight-row'.
-				 checkbox := CpHtmlElement newWithTag: 'input'.
-				 checkbox attributeAt: 'type' put: 'checkbox'.
-				 (dict at: 'included') ifTrue: [
-					 checkbox attributeAt: 'checked' put: '' ].
-				 weightInput := CpHtmlElement newWithTag: 'input'.
-				 weightInput attributeAt: 'type' put: 'number'.
-				 weightInput attributeAt: 'min' put: '1'.
-				 weightInput attributeAt: 'class' put: 'weight-input'.
-				 weightInput
-					 propertyAt: 'value'
-					 put: (dict at: 'weight') printString.
-				 (dict at: 'included') ifFalse: [
-					 weightInput attributeAt: 'disabled' put: '' ].
-				 shareLabel := CpHtmlElement newWithTag: 'span'.
-				 shareLabel attributeAt: 'class' put: 'share-label'.
-				 shareLabel textContent: '–'.
-				 checkbox
-					 when: CpChangeEvent
-					 do: [
-							 (checkbox propertyAt: 'checked')
-								 ifTrue: [ weightInput removeAttributeAt: 'disabled' ]
-								 ifFalse: [ weightInput attributeAt: 'disabled' put: '' ].
-							 self recalculateShares ]
-					 for: self.
-				 weightInput
-					 when: CpInputEvent
-					 do: [ self recalculateShares ]
-					 for: self.
-				 row appendChild: checkbox.
-				 row appendChild: weightInput.
-				 row appendChild: shareLabel.
-				 container appendChild: row.
-				 (dict at: 'id') -> {
-					 checkbox.
-					 weightInput.
-					 shareLabel } ]).
-
-	(self shadowedElementWithId: #'expense-amount')
-		when: CpInputEvent
-		do: [ self recalculateShares ]
-		for: self.
-
-	self recalculateShares
-]
-
-{ #category : 'rendering' }
-TripDetailView >> renderPayerOptions: aCollectionOfDicts [
-	"Recoit un Array de Dictionary { 'id' -> String. 'name' -> String }.
-	 Construit les <option> directement — pas de String encodee a decoder."
-	| select |
-	select := self shadowedElementWithId: #'expense-payer'.
-	select removeChildren.
-	aCollectionOfDicts do: [ :dict |
-		| option |
-		option := CpHtmlElement newWithTag: 'option'.
-		option attributeAt: 'value' put: (dict at: 'id').
-		option textContent: (dict at: 'name').
-		select appendChild: option ]
-]
-
-{ #category : 'rendering' }
 TripDetailView >> renderShowExpenseForm: aBoolean [
-	| form btn |
-	form := self shadowedElementWithId: #'expense-form'.
-	btn := self shadowedElementWithId: #'btn-show-form'.
-	aBoolean
-		ifTrue: [
-				form style: 'display:block'.
-				btn style: 'display:none'.
-				(self shadowedElementWithId: #'expense-desc')
-					propertyAt: 'value'
-					put: ''.
-				(self shadowedElementWithId: #'expense-amount')
-					propertyAt: 'value'
-					put: '' ]
-		ifFalse: [
-				form style: 'display:none'.
-				btn style: 'display:block' ]
+    | container btn |
+    container := self shadowedElementWithId: #'expense-form-container'.
+    btn := self shadowedElementWithId: #'btn-show-form'.
+    aBoolean
+        ifTrue: [
+            container style: 'display:block'.
+            btn style: 'display:none' ]
+        ifFalse: [
+            container style: 'display:none'.
+            btn style: 'display:block' ]
 ]
 
 { #category : 'rendering' }

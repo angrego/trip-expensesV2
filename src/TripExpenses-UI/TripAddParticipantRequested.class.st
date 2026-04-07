@@ -8,9 +8,9 @@ Class {
 	#instVars : [
 		'participantName'
 	],
-	#category : 'TripExpenses-UI-TripDetail',
+	#category : 'TripExpenses-UI-Participant',
 	#package : 'TripExpenses-UI',
-	#tag : 'TripDetail'
+	#tag : 'Participant'
 }
 
 { #category : 'instance creation' }

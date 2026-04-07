@@ -1,9 +1,9 @@
 Class {
 	#name : 'TripParticipantView',
 	#superclass : 'CpView',
-	#category : 'TripExpenses-UI-TripDetail',
+	#category : 'TripExpenses-UI-Participant',
 	#package : 'TripExpenses-UI',
-	#tag : 'TripDetail'
+	#tag : 'Participant'
 }
 
 { #category : 'web resources' }

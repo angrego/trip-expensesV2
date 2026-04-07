@@ -5,9 +5,9 @@ Je vis dans un slot de TripDetailView — je suis independante de son HTML.
 Class {
 	#name : 'TripAddParticipantView',
 	#superclass : 'CpView',
-	#category : 'TripExpenses-UI-TripDetail',
+	#category : 'TripExpenses-UI-Participant',
 	#package : 'TripExpenses-UI',
-	#tag : 'TripDetail'
+	#tag : 'Participant'
 }
 
 { #category : 'web resources' }
@@ -44,8 +44,10 @@ TripAddParticipantView class >> template [
 { #category : 'event handling' }
 TripAddParticipantView >> handleAdd [
 	| name |
-	name := (self shadowedElementWithId: #'participant-name') propertyAt: 'value'.
-	self serverAnnounce: (TripAddParticipantRequested participantName: name)
+	name := (self shadowedElementWithId: #'participant-name')
+		        propertyAt: 'value'.
+	self serverAnnounce:
+		(TripAddParticipantRequested participantName: name)
 ]
 
 { #category : 'event handling' }

@@ -1,9 +1,9 @@
 Class {
 	#name : 'TripBalanceItemView',
 	#superclass : 'CpView',
-	#category : 'TripExpenses-UI-TripDetail',
+	#category : 'TripExpenses-UI-Balance',
 	#package : 'TripExpenses-UI',
-	#tag : 'TripDetail'
+	#tag : 'Balance'
 }
 
 { #category : 'web resources' }

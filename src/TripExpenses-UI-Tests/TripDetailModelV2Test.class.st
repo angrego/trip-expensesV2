@@ -25,21 +25,19 @@ Class {
 TripDetailModelV2Test >> addExpenseAmount: anAmount [
 	"Dépense simple payée par Alice, répartie entre Alice et Bob."
 
-	 model
+	model
 		addExpenseDescription: 'Resto'
 		amount: anAmount
 		payerId: aliceId
-		participantIds: {
-				aliceId.
-				bobId }
+		participantWeights: {
+				(aliceId -> 1).
+				(bobId -> 1) }
 ]
 
-{ #category : 'tests - ajout dépense' }
+{ #category : 'helpers' }
 TripDetailModelV2Test >> addExpenseAmount: anAmount weights: aPairCollection [
-	"Dépense payée par Alice, répartie selon les poids fournis.
-     aPairCollection : { aliceId -> 2. bobId -> 1 } par exemple."
 
-	 model
+	model
 		addExpenseDescription: 'Resto'
 		amount: anAmount
 		payerId: aliceId
@@ -48,8 +46,9 @@ TripDetailModelV2Test >> addExpenseAmount: anAmount weights: aPairCollection [
 
 { #category : 'running' }
 TripDetailModelV2Test >> setUp [
+
 	| trip alice bob |
-		service := TripApplicationService withRepository:
+	service := TripApplicationService withRepository:
 		           InMemoryTripRepository new.
 	trip := service createTrip: 'Vacances' currency: 'EUR'.
 	alice := service addParticipantByName: 'Alice' toTrip: trip id.
@@ -62,26 +61,20 @@ TripDetailModelV2Test >> setUp [
 
 { #category : 'tests - chargement' }
 TripDetailModelV2Test >> testAddExpenseAllWeightsZeroSetsErrorMessage [
-    "Tous les poids à zéro → aucun participant dans la split rule → erreur."
-    self addExpenseAmount: 90 weights: { aliceId -> 0. bobId -> 0 }.
+	"Tous les poids à zéro → aucun participant dans la split rule → erreur."
+
+	model addExpenseDescription: 'Resto' amount: 90 payerId: aliceId participantWeights: { aliceId -> 0. bobId -> 0 }.
     self assert: model errorMessage isNotNil.
     self deny: model errorMessage isEmpty
 ]
 
 { #category : 'tests - ajout dépense' }
 TripDetailModelV2Test >> testAddExpenseAnnouncesValueChanged [
-	| announced |
-announced := false.
-model when: ValueChanged do: [ announced := true ].
-self addExpenseAmount: 60.
-self assert: announced
-]
-
-{ #category : 'tests - ajout dépense' }
-TripDetailModelV2Test >> testAddExpenseAppearsInExpenses [
-
-self addExpenseAmount: 60.
-self assert: model expenses size equals: 1
+    | announced |
+    announced := false.
+    model when: ValueChanged do: [ announced := true ].
+    model addExpenseDescription:  'Resto' amount: 90 payerId: aliceId participantWeights: { aliceId -> 1. bobId -> 1 }.
+    self assert: announced
 ]
 
 { #category : 'tests - ajout dépense' }
@@ -121,6 +114,12 @@ self addExpenseAmount: 60.
 		(model expenses first isKindOf: TripExpenseExpenseItemModel)
 ]
 
+{ #category : 'tests - chargement' }
+TripDetailModelV2Test >> testAddExpenseIsSavedInTrip [
+    model addExpenseDescription: 'Resto' amount: 90 payerId: aliceId participantWeights: { aliceId -> 1. bobId -> 1 }.
+    self assert: (service findTrip: tripId) expenses size equals: 1
+]
+
 { #category : 'tests - validation' }
 TripDetailModelV2Test >> testAddExpenseSettlementHasFromAndTo [
 	| s |
@@ -147,9 +146,7 @@ TripDetailModelV2Test >> testAddExpenseWithBlankDescriptionDoesNotAddExpense [
 		addExpenseDescription: ''
 		amount: 60
 		payerId: aliceId
-		participantIds: {
-				aliceId.
-				bobId }.
+participantWeights: { aliceId -> 1. bobId -> 1 }.
 	self assert: model expenses isEmpty
 ]
 
@@ -160,9 +157,7 @@ model
 		addExpenseDescription: ''
 		amount: 60
 		payerId: aliceId
-		participantIds: {
-				aliceId.
-				bobId }.
+	participantWeights: { aliceId -> 1. bobId -> 1 }.
 	self assert: model errorMessage isNotNil
 ]
 
@@ -187,7 +182,7 @@ model
 		addExpenseDescription: 'Resto'
 		amount: 60
 		payerId: aliceId
-		participantIds: #(  ).
+		participantWeights: #(  ).
 	self assert: model errorMessage isNotNil
 ]
 
@@ -209,9 +204,7 @@ model
 		addExpenseDescription: 'Resto'
 		amount: -10
 		payerId: aliceId
-		participantIds: {
-				aliceId.
-				bobId }.
+participantWeights: { aliceId -> 1. bobId -> 1 }.
 	self assert: model errorMessage isNotNil
 ]
 
@@ -243,9 +236,7 @@ TripDetailModelV2Test >> testAddExpenseWithZeroAmountSetsError [
 		addExpenseDescription: 'Resto'
 		amount: 0
 		payerId: aliceId
-		participantIds: {
-		aliceId.
-				bobId }.
+participantWeights: { aliceId -> 1. bobId -> 1 }.
 	self assert: model errorMessage isNotNil
 ]
 
@@ -277,9 +268,7 @@ TripDetailModelV2Test >> testAddValidExpenseClearsError [
 		addExpenseDescription: ''
 		amount: 60
 		payerId: aliceId
-		participantIds: {
-				aliceId.
-				bobId }.
+participantWeights: { aliceId -> 1. bobId -> 1 }.
 	self addExpenseAmount: 30.
 	self assert: model errorMessage isNil
 ]

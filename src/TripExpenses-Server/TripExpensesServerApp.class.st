@@ -70,13 +70,15 @@ TripExpensesServerApp >> installAnnouncements [
 		installClass: TripDetailParticipantInclusionChanged;
 		installClass: TripDetailParticipantWeightChanged;
 		installClass: TripDetailGiftAddRequested;
- installClass: TripDetailGiftRemoveRequested;
- installClass: TripDetailGiftModeChanged.
+		installClass: TripDetailGiftRemoveRequested;
+		installClass: TripDetailGiftModeChanged;
+		installClass: TripDetailGiftAmountChanged.
 ]
 
 { #category : 'installing' }
 TripExpensesServerApp >> installViews [
 	"Toutes les CpView subclasses — elles s'exécutent dans le navigateur."
+
 	self
 		installClass: TripAppView;
 		installClass: TripListView;
@@ -86,5 +88,6 @@ TripExpensesServerApp >> installViews [
 		installClass: TripParticipantView;
 		installClass: TripBalanceItemView;
 		installClass: TripExpenseItemView;
-		installClass: TripSettlementItemView
+		installClass: TripSettlementItemView;
+		installClass: TripExpenseFormView.
 ]

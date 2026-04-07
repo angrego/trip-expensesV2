@@ -4,9 +4,9 @@ Class {
 	#instVars : [
 		'entryId'
 	],
-	#category : 'TripExpenses-UI-TripDetail',
+	#category : 'TripExpenses-UI-Expense',
 	#package : 'TripExpenses-UI',
-	#tag : 'TripDetail'
+	#tag : 'Expense'
 }
 
 { #category : 'accessing' }

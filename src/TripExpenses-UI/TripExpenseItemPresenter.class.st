@@ -6,9 +6,9 @@ via parent onDeleteExpenseId: — le parent (TripDetailPresenter) sait recharger
 Class {
 	#name : 'TripExpenseItemPresenter',
 	#superclass : 'CpPresenter',
-	#category : 'TripExpenses-UI-TripDetail',
+	#category : 'TripExpenses-UI-Expense',
 	#package : 'TripExpenses-UI',
-	#tag : 'TripDetail'
+	#tag : 'Expense'
 }
 
 { #category : 'rendering' }

@@ -1,9 +1,9 @@
 Class {
-	#name : 'TripDetailGiftModeChanged',
+	#name : 'TripDetailGiftToChanged',
 	#superclass : 'Announcement',
 	#instVars : [
 		'entryId',
-		'mode'
+		'toId'
 	],
 	#category : 'TripExpenses-UI-Expense',
 	#package : 'TripExpenses-UI',
@@ -11,30 +11,30 @@ Class {
 }
 
 { #category : 'as yet unclassified' }
-TripDetailGiftModeChanged class >> entryId: anId mode: aMode [
-    ^ self new entryId: anId; mode: aMode; yourself
+TripDetailGiftToChanged class >> entryId: anId toId: aToId [
+    ^ self new entryId: anId; toId: aToId; yourself
 ]
 
 { #category : 'accessing' }
-TripDetailGiftModeChanged >> entryId [
+TripDetailGiftToChanged >> entryId [
 
 	^ entryId
 ]
 
 { #category : 'accessing' }
-TripDetailGiftModeChanged >> entryId: anObject [
+TripDetailGiftToChanged >> entryId: anObject [
 
 	entryId := anObject
 ]
 
 { #category : 'accessing' }
-TripDetailGiftModeChanged >> mode [
+TripDetailGiftToChanged >> toId [
 
-	^ mode
+	^ toId
 ]
 
 { #category : 'accessing' }
-TripDetailGiftModeChanged >> mode: anObject [
+TripDetailGiftToChanged >> toId: anObject [
 
-	mode := anObject
+	toId := anObject
 ]

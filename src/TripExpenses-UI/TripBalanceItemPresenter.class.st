@@ -1,9 +1,9 @@
 Class {
 	#name : 'TripBalanceItemPresenter',
 	#superclass : 'CpPresenter',
-	#category : 'TripExpenses-UI-TripDetail',
+	#category : 'TripExpenses-UI-Balance',
 	#package : 'TripExpenses-UI',
-	#tag : 'TripDetail'
+	#tag : 'Balance'
 }
 
 { #category : 'rendering' }

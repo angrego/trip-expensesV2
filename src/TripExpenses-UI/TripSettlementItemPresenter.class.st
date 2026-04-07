@@ -1,9 +1,9 @@
 Class {
 	#name : 'TripSettlementItemPresenter',
 	#superclass : 'CpPresenter',
-	#category : 'TripExpenses-UI-TripDetail',
+	#category : 'TripExpenses-UI-Settlement',
 	#package : 'TripExpenses-UI',
-	#tag : 'TripDetail'
+	#tag : 'Settlement'
 }
 
 { #category : 'rendering' }

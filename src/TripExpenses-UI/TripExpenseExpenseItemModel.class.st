@@ -10,9 +10,9 @@ Class {
 		'payerName',
 		'beneficiaryNames'
 	],
-	#category : 'TripExpenses-UI-TripDetail',
+	#category : 'TripExpenses-UI-Expense',
 	#package : 'TripExpenses-UI',
-	#tag : 'TripDetail'
+	#tag : 'Expense'
 }
 
 { #category : 'instance creation' }

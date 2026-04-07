@@ -8,9 +8,9 @@ Class {
 		'mode',
 		'amount'
 	],
-	#category : 'TripExpenses-UI-TripDetail',
+	#category : 'TripExpenses-UI-Expense',
 	#package : 'TripExpenses-UI',
-	#tag : 'TripDetail'
+	#tag : 'Expense'
 }
 
 { #category : 'accessing' }
@@ -53,14 +53,11 @@ TripExpenseGiftEntry >> initialize [
 
 { #category : 'accessing' }
 TripExpenseGiftEntry >> isComplete [
-	"Une entry est complète si fromId et toId sont définis,
-     et si le montant est défini en mode fixe."
-
-	fromId ifNil: [ ^ false ].
-	toId ifNil: [ ^ false ].
-	mode = #fixed ifTrue: [ ^ amount isNil not and: [ amount > 0 ] ].
-	"mode = #share : le montant sera calculé — pas besoin de le vérifier"
-	^ true
+    fromId ifNil: [ ^ false ].
+    mode = #globalShare ifTrue: [ ^ amount isNil not and: [ amount > 0 ] ].
+    mode = #fixed ifTrue: [ ^ amount isNil not and: [ amount > 0 ] ].
+    "mode = #share : le montant sera calculé"
+    ^ toId isNil not
 ]
 
 { #category : 'accessing' }

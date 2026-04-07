@@ -7,9 +7,9 @@ TripDetailPresenter (mon parent) recharge les participants via son propre render
 Class {
 	#name : 'TripAddParticipantPresenter',
 	#superclass : 'CpPresenter',
-	#category : 'TripExpenses-UI-TripDetail',
+	#category : 'TripExpenses-UI-Participant',
 	#package : 'TripExpenses-UI',
-	#tag : 'TripDetail'
+	#tag : 'Participant'
 }
 
 { #category : 'event handling' }
