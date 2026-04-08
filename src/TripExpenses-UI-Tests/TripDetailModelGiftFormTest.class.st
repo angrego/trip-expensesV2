@@ -16,20 +16,21 @@ Class {
 
 { #category : 'running' }
 TripDetailModelGiftFormTest >> setUp [
-
-	| trip alice bob charlie |
-	service := TripApplicationService withRepository:
-		           InMemoryTripRepository new.
-	trip := service createTrip: 'Vacances' currency: 'EUR'.
-	alice := service addParticipant: (Participant name:'Alice') toTrip: trip id.
-	bob := service addParticipant: (Participant name:'Bob') toTrip: trip id.
-	charlie := service addParticipant: (Participant name:'Charlie') toTrip: trip id.
-	tripId := trip id.
-	aliceId := alice id value.
-	bobId := bob id value.
-	charlieId := charlie id value.
-	model := TripDetailModel onService: service tripId: tripId.
-	model showExpenseForm
+    | trip alice bob charlie |
+super setUp .
+    service := TripApplicationService withRepository: InMemoryTripRepository new.
+    trip := service createTrip: 'Vacances' currency: 'EUR'.
+    alice   := service addParticipant: (Participant name: 'Alice')   toTrip: trip id.
+    bob     := service addParticipant: (Participant name: 'Bob')     toTrip: trip id.
+    charlie := service addParticipant: (Participant name: 'Charlie') toTrip: trip id.
+    tripId    := trip id.
+    aliceId   := alice id value.
+    bobId     := bob id value.
+    charlieId := charlie id value.
+    model := TripDetailModel onService: service tripId: tripId.
+    model showExpenseForm.
+    model expenseFormModel setCurrentPayerId: aliceId.
+    model expenseFormModel setCurrentAmount: 90
 ]
 
 { #category : 'running' }

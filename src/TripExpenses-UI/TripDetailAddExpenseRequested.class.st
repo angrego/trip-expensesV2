@@ -26,16 +26,6 @@ TripDetailAddExpenseRequested class >> description: aDesc amountString: anAmount
 		yourself
 ]
 
-{ #category : 'as yet unclassified' }
-TripDetailAddExpenseRequested class >> description: aDesc amountString: anAmount payerId: aPayerId weightsString: aWeightsCollection [
-    ^ self new
-        description:   aDesc;
-        amountString:  anAmount;
-        payerId:       aPayerId;
-        weightsString: aWeightsCollection;
-        yourself
-]
-
 { #category : 'accessing' }
 TripDetailAddExpenseRequested >> amountString [
 
@@ -70,14 +60,4 @@ TripDetailAddExpenseRequested >> payerId [
 TripDetailAddExpenseRequested >> payerId: anObject [
 
 	payerId := anObject
-]
-
-{ #category : 'accessing' }
-TripDetailAddExpenseRequested >> weightsString [
-    ^ weightsString
-]
-
-{ #category : 'accessing' }
-TripDetailAddExpenseRequested >> weightsString: aCollection [
-    weightsString := aCollection
 ]

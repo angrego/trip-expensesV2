@@ -247,37 +247,37 @@ TripExpenseFormView >> buildParticipantSelectNamed: aName value: aValue [
 
 { #category : 'rendering' }
 TripExpenseFormView >> buildWeightInputFor: dict checkbox: checkbox [
-    | weightInput |
-    weightInput := CpHtmlElement newWithTag: 'input'.
-    weightInput attributeAt: 'type' put: 'number'.
-    weightInput attributeAt: 'min' put: '1'.
-    weightInput attributeAt: 'class' put: 'weight-input'.
-    weightInput propertyAt: 'value' put: (dict at: 'weight') printString.
-    checkbox
-        when: CpChangeEvent
-        do: [
-            | included |
-            included := checkbox propertyAt: 'checked'.
-            weightInput attributeAt: 'disabled' put: ''.
-            included ifTrue: [ weightInput removeAttributeAt: 'disabled' ].
-            self serverAnnounce: (TripDetailParticipantInclusionChanged
-                participantId: (dict at: 'participantId')
-                included: included).
-            self recalculateShares ]
-        for: self.
-    weightInput
-        when: CpInputEvent
-        do: [
-            | w |
-            w := weightInput propertyAt: 'value'.
-            w isEmpty ifFalse: [
-                self serverAnnounce: (TripDetailParticipantWeightChanged
-                    participantId: (dict at: 'participantId')
-                    weight: w asNumber truncated) ].
-            self recalculateShares ]
-        for: self.
-    ^ weightInput
 
+	| weightInput |
+	weightInput := CpHtmlElement newWithTag: 'input'.
+	weightInput attributeAt: 'type' put: 'number'.
+	weightInput attributeAt: 'min' put: '1'.
+	weightInput attributeAt: 'class' put: 'weight-input'.
+	weightInput propertyAt: 'value' put: (dict at: 'weight') printString.
+	checkbox
+		when: CpChangeEvent
+		do: [
+				| included |
+				included := checkbox propertyAt: 'checked'.
+				weightInput attributeAt: 'disabled' put: ''.
+				included ifTrue: [ weightInput removeAttributeAt: 'disabled' ].
+				self serverAnnounce: (TripExpenseParticipantInclusionChanged
+						 participantId: (dict at: 'participantId')
+						 included: included).
+				self recalculateShares ]
+		for: self.
+	weightInput
+		when: CpInputEvent
+		do: [
+				| w |
+				w := weightInput propertyAt: 'value'.
+				w isEmpty ifFalse: [
+						self serverAnnounce: (TripExpenseParticipantWeightChanged
+								 participantId: (dict at: 'participantId')
+								 weight: w asNumber truncated) ].
+				self recalculateShares ]
+		for: self.
+	^ weightInput
 ]
 
 { #category : 'rendering' }
@@ -335,34 +335,14 @@ TripExpenseFormView >> currencyFromDOM [
 
 { #category : 'event handling' }
 TripExpenseFormView >> handleAddExpense [
-
-	| desc amount payerId weights |
-	desc := (self shadowedElementWithId: #'expense-desc') propertyAt:
-		        'value'.
-	amount := (self shadowedElementWithId: #'expense-amount')
-		          propertyAt: 'value'.
-	payerId := (self shadowedElementWithId: #'expense-payer')
-		           propertyAt: 'value'.
-	weights := (weightRows ifNil: [ #(  ) ] ifNotNil: [ weightRows ])
-		           collect: [ :assoc |
-				           | cb inp pid w |
-				           pid := assoc key.
-				           cb := assoc value first.
-				           inp := assoc value second.
-				           w := (cb propertyAt: 'checked')
-					                ifTrue: [
-							                | v |
-							                v := inp propertyAt: 'value'.
-							                v isEmpty
-								                ifTrue: [ '1' ]
-								                ifFalse: [ v ] ]
-					                ifFalse: [ '0' ].
-				           pid , ':' , w ].
-	self serverAnnounce: (TripDetailAddExpenseRequested
-			 description: desc
-			 amountString: amount
-			 payerId: payerId
-			 weightsString: weights asArray)
+    | desc amount payerId |
+    desc    := (self shadowedElementWithId: #'expense-desc')   propertyAt: 'value'.
+    amount  := (self shadowedElementWithId: #'expense-amount') propertyAt: 'value'.
+    payerId := (self shadowedElementWithId: #'expense-payer')  propertyAt: 'value'.
+    self serverAnnounce: (TripDetailAddExpenseRequested
+        description: desc
+        amountString: amount
+        payerId: payerId)
 ]
 
 { #category : 'event handling' }

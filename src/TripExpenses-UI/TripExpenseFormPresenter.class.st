@@ -8,22 +8,13 @@ Class {
 
 { #category : 'view' }
 TripExpenseFormPresenter >> onAddExpense: anAnnouncement [
-
- | amount weights |
+    | amount |
     amount := anAnnouncement amountString asNumber.
-    weights := anAnnouncement weightsString collect: [ :entry |
-        | colonIndex pid w |
-        colonIndex := entry indexOf: $:.
-        pid := entry copyFrom: 1 to: colonIndex - 1.
-        w   := (entry copyFrom: colonIndex + 1 to: entry size) asInteger.
-        pid -> w ].
     self model
         addExpense: anAnnouncement description
         amount: amount
-        payerId: anAnnouncement payerId
-        weights: weights.
-    self model isShowing ifFalse: [
-        self parent onExpenseAdded ]
+        payerId: anAnnouncement payerId.
+    self model isShowing ifFalse: [ self parent onExpenseAdded ]
 ]
 
 { #category : 'view' }

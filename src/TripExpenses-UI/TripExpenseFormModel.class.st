@@ -67,20 +67,17 @@ TripExpenseFormModel >> addExpense: aDescription amount: anAmount payerId: aPaye
 					                   ifNone: [
 					                   Error signal:
 						                   'Participant introuvable : ' , pair key ].
-				              ParticipantWeight participant: p weight: pair value ]).	
-[
+				              ParticipantWeight participant: p weight: pair value ]).
+	[
 		gifts := self
-			         buildGiftsFromEntries: giftEntries
-			         trip: trip
-			         splitRule: splitRule
-			         totalAmount: anAmount.
+			        buildGiftsFromEntries: giftEntries.
 		expense := Expense
 			           description: aDescription trim
 			           totalAmount: (Money amount: anAmount currency: currency)
 			           payments: payments
 			           splitRule: splitRule
 			           gifts: gifts
-			           date: Date today.]
+			           date: Date today ]
 		on: Error
 		do: [ :e |
 				errorMessage := e messageText.
@@ -88,26 +85,6 @@ TripExpenseFormModel >> addExpense: aDescription amount: anAmount payerId: aPaye
 				^ self ].
 	service addExpense: expense toTrip: tripId.
 	self hide
-]
-
-{ #category : 'adding' }
-TripExpenseFormModel >> addExpense: aDescription amount: anAmount payerId: aPayerId weights: aPairCollection [
-    aPairCollection isEmpty ifTrue: [
-        errorMessage := 'Il faut au moins un participant'.
-        self valueChanged.
-        ^ self ].
-    aPairCollection do: [ :pair |
-        participantEntries
-            detect: [ :e | e participantId = pair key ]
-            ifFound: [ :e |
-                pair value > 0
-                    ifTrue: [
-                        e included: true.
-                        e weight: pair value ]
-                    ifFalse: [
-                        e included: false.
-                        e weight: 1 ] ] ].
-    self addExpense: aDescription amount: anAmount payerId: aPayerId
 ]
 
 { #category : 'adding' }
@@ -124,6 +101,15 @@ TripExpenseFormModel >> addGiftEntry [
         beneficiaries: participantEntries.
     giftEntries add: entry.
     self valueChanged
+]
+
+{ #category : 'accessing' }
+TripExpenseFormModel >> buildGiftsFromEntries: someEntries [
+
+	^ someEntries flatCollect: [ :e |
+			  | gifts |
+			  gifts := e toGift: currency.
+			  gifts ifNil: [ #(  ) ] ifNotNil: [ gifts ] ]
 ]
 
 { #category : 'accessing' }
@@ -145,50 +131,6 @@ TripExpenseFormModel >> buildGiftsFromEntries: someEntries trip: aTrip splitRule
                               totalWeight: totalWeight
                               totalAmount: anAmount } ] ].
     ^ rawGifts select: [ :g | g isNil not ]
-]
-
-{ #category : 'accessing' }
-TripExpenseFormModel >> buildGlobalShareGiftsFromEntry: anEntry trip: aTrip splitRule: aSplitRule totalWeight: totalWeight [
-    "Répartit le montant global entre tous les participants sauf le donateur."
-    | from recipients totalRecipientWeight |
-    from := aTrip participants
-        detect: [ :p | p id value = anEntry fromId ]
-        ifNone: [ ^ #() ].
-    recipients := aSplitRule participantWeights
-        reject: [ :pw | pw participant = from ].
-    totalRecipientWeight := recipients
-        inject: 0
-        into: [ :sum :pw | sum + pw weight ].
-    totalRecipientWeight = 0 ifTrue: [ ^ #() ].
-    ^ recipients collect: [ :pw |
-        | share |
-        share := Money
-            amount: anEntry amount * pw weight / totalRecipientWeight
-            currency: currency.
-        Gift from: from to: pw participant amount: share ]
-]
-
-{ #category : 'accessing' }
-TripExpenseFormModel >> buildSingleGiftFromEntry: anEntry trip: aTrip splitRule: aSplitRule totalWeight: totalWeight totalAmount: anAmount [
-    | from to giftAmount |
-    from := aTrip participants
-        detect: [ :p | p id value = anEntry fromId ]
-        ifNone: [ ^ nil ].
-    to := aTrip participants
-        detect: [ :p | p id value = anEntry toId ]
-        ifNone: [ ^ nil ].
-    (from isNil or: [ to isNil ]) ifTrue: [ ^ nil ].
-    giftAmount := anEntry mode = #share
-        ifTrue: [
-            | toPw |
-            toPw := aSplitRule participantWeights
-                detect: [ :pw | pw participant = to ]
-                ifNone: [ nil ].
-            toPw isNil
-                ifTrue:  [ Money amount: 0 currency: currency ]
-                ifFalse: [ Money amount: anAmount * toPw weight / totalWeight currency: currency ] ]
-        ifFalse: [ Money amount: anEntry amount currency: currency ].
-    ^ Gift from: from to: to amount: giftAmount
 ]
 
 { #category : 'accessing' }

@@ -36,17 +36,26 @@ TripDetailModel class >> onService: aTripApplicationService tripId: anId [
 
 { #category : 'accessing' }
 TripDetailModel >> addExpenseDescription: aDescription amount: anAmount payerId: aPayerId participantWeights: aPairCollection [
-
-	expenseFormModel
-		addExpense: aDescription
-		amount: anAmount
-		payerId: aPayerId
-		weights: aPairCollection.
-	errorMessage := expenseFormModel errorMessage.
-	errorMessage ifNotNil: [
-			self valueChanged.
-			^ self ].
-	self loadTrip
+    aPairCollection isEmpty ifTrue: [
+        errorMessage := 'Il faut au moins un participant'.
+        self valueChanged.
+        ^ self ].
+    aPairCollection do: [ :pair |
+        expenseFormModel participantEntries
+            detect: [ :e | e participantId = pair key ]
+            ifFound: [ :e |
+                pair value > 0
+                    ifTrue:  [ e included: true.  e weight: pair value ]
+                    ifFalse: [ e included: false. e weight: 1 ] ] ].
+    expenseFormModel
+        addExpense: aDescription
+        amount: anAmount
+        payerId: aPayerId.
+    errorMessage := expenseFormModel errorMessage.
+    errorMessage ifNotNil: [
+        self valueChanged.
+        ^ self ].
+    self loadTrip
 ]
 
 { #category : 'accessing' }
