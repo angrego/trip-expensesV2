@@ -10,6 +10,15 @@ Class {
 	#tag : 'Balance'
 }
 
+{ #category : 'running' }
+TripGenerosityItemModelTest >> setUp [
+	super setUp.
+	alice := Participant name: 'Alice'.
+	model := TripGenerosityItemModel
+		         setParticipant: alice
+		         money: (Money amount: 30 currency: 'EUR')
+]
+
 { #category : 'tests' }
 TripGenerosityItemModelTest >> testAmount [
     self assert: model amount equals: '30'

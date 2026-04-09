@@ -19,9 +19,36 @@ TripGenerosityModel class >> onService: aService tripId: anId [
         yourself
 ]
 
+{ #category : 'initialization' }
+TripGenerosityModel >> initialize [
+    super initialize.
+    items := OrderedCollection new
+]
+
 { #category : 'accessing' }
 TripGenerosityModel >> items [
 	^ items
+]
+
+{ #category : 'accessing' }
+TripGenerosityModel >> load [
+
+	| trip report sorted |
+	trip := service findTrip: tripId.
+	report := trip generosityReport.
+	sorted := report associations asSortedCollection: [ :a :b |
+		          a value amount >= b value amount ].
+	items := sorted collect: [ :assoc |
+		         TripGenerosityItemModel
+			         setParticipant: assoc key
+			         money: assoc value ].
+	self valueChanged.
+	^self.
+]
+
+{ #category : 'presenter' }
+TripGenerosityModel >> preferredPresenterClass [
+    ^ TripGenerosityPresenter
 ]
 
 { #category : 'private - setting' }

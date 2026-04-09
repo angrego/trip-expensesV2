@@ -15,6 +15,39 @@ Class {
 	#tag : 'Expense'
 }
 
+{ #category : 'instance creation' }
+TripExpenseExpenseItemModel class >> fromExpense: anExpense [
+
+	| payer beneficiaries allWeightsOne |
+	payer := anExpense payments isEmpty
+		         ifTrue: [ '?' ]
+		         ifFalse: [ anExpense payments first participant name ].
+
+	allWeightsOne := anExpense splitRule participantWeights allSatisfy: [
+		                 :pw | pw weight = 1 ].
+
+	beneficiaries := ', ' join:
+		                 (anExpense splitRule participantWeights collect: [
+				                  :pw |
+				                  allWeightsOne
+					                  ifTrue: [ pw participant name ]
+					                  ifFalse: [
+						 String streamContents: [ :s | s nextPutAll: pw participant name;
+                nextPutAll: ' (x';
+                nextPutAll: pw weight printString;
+                nextPut: $)]]]).
+					                  
+	^ self new
+		  expenseId: anExpense id;
+		  description: anExpense description;
+		  amount: anExpense totalAmount amount printString;
+		  currency: anExpense totalAmount currency;
+		  date: anExpense date printString;
+		  payerName: payer;
+		  beneficiaryNames: beneficiaries;
+		  yourself
+]
+
 { #category : 'accessing' }
 TripExpenseExpenseItemModel >> amount [
 	^ amount

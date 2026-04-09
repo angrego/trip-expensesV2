@@ -45,6 +45,11 @@ TripBalanceModel >> load [
     self valueChanged
 ]
 
+{ #category : 'presenter' }
+TripBalanceModel >> preferredPresenterClass [
+    ^ TripGenerosityItemPresenter
+]
+
 { #category : 'private - setting' }
 TripBalanceModel >> service: aService [
     service := aService

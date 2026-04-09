@@ -10,6 +10,17 @@ Class {
 }
 
 { #category : 'running' }
+TripBalanceItemModelTest >> setUp [
+
+	| alice |
+	super setUp .
+	alice := Participant name: 'Alice'.
+	model := TripBalanceItemModel
+		         fromParticipant: alice
+		         money: (Money amount: 30 currency: 'EUR')
+]
+
+{ #category : 'running' }
 TripBalanceItemModelTest >> testAmount [
     self assert: model amount equals: '30'
 ]

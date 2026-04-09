@@ -31,6 +31,11 @@ TripGenerosityItemModel >> participantName [
 	^participant name 
 ]
 
+{ #category : 'presenter' }
+TripGenerosityItemModel >> preferredPresenterClass [
+    ^ TripGenerosityItemPresenter
+]
+
 { #category : 'initialization' }
 TripGenerosityItemModel >> setParticipant: aParticipant money: aMoney [ 
 	participant:=aParticipant.

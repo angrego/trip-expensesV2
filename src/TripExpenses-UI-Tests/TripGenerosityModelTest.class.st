@@ -14,6 +14,22 @@ Class {
 }
 
 { #category : 'running' }
+TripGenerosityModelTest >> setUp [
+
+	| trip alice bob |
+	super setUp.
+	service := TripApplicationService withRepository:
+		           InMemoryTripRepository new.
+	trip := service createTrip: 'Vacances' currency: 'EUR'.
+	alice := service addParticipantByName: 'Alice' toTrip: trip id.
+	bob := service addParticipantByName: 'Bob' toTrip: trip id.
+	tripId := trip id.
+	aliceId := alice id value.
+	bobId := bob id value.
+	model := TripGenerosityModel onService: service tripId: tripId
+]
+
+{ #category : 'running' }
 TripGenerosityModelTest >> testInitialItemsIsEmpty [
     self assert: model items isEmpty
 ]

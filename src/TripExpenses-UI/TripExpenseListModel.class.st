@@ -33,13 +33,13 @@ TripExpenseListModel >> initialize [
 
 { #category : 'accessing' }
 TripExpenseListModel >> load [
+
 	| trip |
-    trip := service findTrip: tripId.
-    expenses := trip expenses collect: [ :e |
-        TripExpenseExpenseItemModel
-            fromExpense: e
-            currency: currency ].
-    self valueChanged
+	trip := service findTrip: tripId.
+	expenses := trip expenses collect: [ :e |
+		            TripExpenseExpenseItemModel fromExpense: e ].
+	self valueChanged.
+	^self
 ]
 
 { #category : 'accessing' }
