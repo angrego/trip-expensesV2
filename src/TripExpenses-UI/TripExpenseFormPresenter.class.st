@@ -6,7 +6,7 @@ Class {
 	#tag : 'Expense'
 }
 
-{ #category : 'view' }
+{ #category : 'event handling' }
 TripExpenseFormPresenter >> onAddExpense: anAnnouncement [
     | amount |
     amount := anAnnouncement amountString asNumber.
@@ -17,103 +17,100 @@ TripExpenseFormPresenter >> onAddExpense: anAnnouncement [
     self model isShowing ifFalse: [ self parent onExpenseAdded ]
 ]
 
-{ #category : 'view' }
+{ #category : 'event handling' }
 TripExpenseFormPresenter >> onAmountChanged: anAnnouncement [
-    self model setCurrentAmount: anAnnouncement amount
+
+	self model setCurrentAmount: anAnnouncement amount.
 ]
 
-{ #category : 'view' }
+{ #category : 'event handling' }
 TripExpenseFormPresenter >> onGiftAdd [
 
-	self model addGiftEntry
+self model addGiftEntry.
+    self renderAllChildViewsForModels: self model giftEntries atSlotNamed: #gifts
 ]
 
-{ #category : 'view' }
-TripExpenseFormPresenter >> onGiftAmountChanged: anAnnouncement [
-    self model setGiftEntryId: anAnnouncement entryId amount: anAnnouncement amount
+{ #category : 'event handling' }
+TripExpenseFormPresenter >> onHideExpenseForm [
+
+	self model hide.
+	self parent onExpenseFormHidden
 ]
 
-{ #category : 'view' }
-TripExpenseFormPresenter >> onGiftModeChanged: anAnnouncement [
-    self model setGiftEntryId: anAnnouncement entryId mode: anAnnouncement mode
-]
-
-{ #category : 'view' }
+{ #category : 'event handling' }
 TripExpenseFormPresenter >> onInclusionChanged: anAnnouncement [
-    | entry |
+
+ | entry |
     entry := self model participantEntries
         detect: [ :e | e participantId = anAnnouncement participantId ]
         ifNone: [ ^ self ].
-    entry included: anAnnouncement included
+    entry included: anAnnouncement included.
+    self model updateShareLabels
 ]
 
-{ #category : 'view' }
+{ #category : 'event handling' }
 TripExpenseFormPresenter >> onPayerChanged: anAnnouncement [
     self model setCurrentPayerId: anAnnouncement payerId
 ]
 
-{ #category : 'view' }
+{ #category : 'event handling' }
+TripExpenseFormPresenter >> onRemoveGiftEntry: aGiftEntryModel [
+    self model removeGiftEntryId: aGiftEntryModel entryId
+]
+
+{ #category : 'event handling' }
 TripExpenseFormPresenter >> onWeightChanged: anAnnouncement [
+
     | entry |
     entry := self model participantEntries
         detect: [ :e | e participantId = anAnnouncement participantId ]
         ifNone: [ ^ self ].
-    entry weight: anAnnouncement weight
+    entry weight: anAnnouncement weight.
+    self model updateShareLabels
+]
+
+{ #category : 'rendering' }
+TripExpenseFormPresenter >> renderPayerOptions [
+    self view renderPayerOptions: (self model participantEntries collect: [ :e |
+        Array with: e participantId with: e name ]) asArray
 ]
 
 { #category : 'rendering' }
 TripExpenseFormPresenter >> renderView [
 
-    self view
-        renderPayerOptions: (self model participantEntries collect: [ :e |
-            Array with: e participantId with: e name ]) asArray;
-        renderErrorMessage: (self model errorMessage ifNil: [ '' ]);
-        renderAddGiftButtonEnabled: (
-            self model currentPayerId isNotNil and: [
-                self model currentAmount isNotNil and: [
-                    self model currentAmount > 0 ] ]).
-    self
-        renderAllChildViewsForModels: self model giftEntries
-        atSlotNamed: #gifts
-]
-
-{ #category : 'rendering' }
-TripExpenseFormPresenter >> renderWeights [
-
-	self view renderParticipantWeightEntries:
-		(self model participantEntries collect: [ :e |
-				 Array
-					 with: e participantId
-					 with: e name
-					 with: e weight
-					 with: e included ]) asArray
-				currency: self model currency.
+self model justOpened ifTrue: [
+        self view reset.
+        self model clearJustOpened ].
+	self view
+		renderPayerOptions: (self model participantEntries collect: [ :e |
+					 Array with: e participantId with: e name ]) asArray;
+		renderErrorMessage: (self model errorMessage ifNil: [ '' ]);
+		renderAddGiftButtonEnabled:
+			(self model currentPayerId isNotNil and: [
+					 self model currentAmount isNotNil and: [
+							 self model currentAmount > 0 ] ]).
+	self
+		renderAllChildViewsForModels: self model participantWeightModels
+		atSlotNamed: #weights.
+	self model updateShareLabels.
+	self
+		renderAllChildViewsForModels: self model giftEntries
+		atSlotNamed: #gifts
 ]
 
 { #category : 'view' }
 TripExpenseFormPresenter >> viewCreated [
+    super viewCreated.
+    self view
+        when: TripDetailAddExpenseRequested      send: #onAddExpense:      to: self;
+        when: TripDetailHideExpenseFormRequested  send: #onHideExpenseForm  to: self;
+        when: TripDetailGiftAddRequested          send: #onGiftAdd          to: self;
+        when: TripDetailGiftRemoveRequested       send: #onGiftRemove:      to: self;
+        when: TripParticipantInclusionChanged     send: #onInclusionChanged: to: self;
+        when: TripParticipantWeightChanged        send: #onWeightChanged:   to: self;
+        when: TripExpensePayerChanged             send: #onPayerChanged:    to: self;
+        when: TripExpenseAmountChanged            send: #onAmountChanged:   to: self
 
-	super viewCreated.
-	self renderWeights.
-	self view
-		when: TripDetailAddExpenseRequested send: #onAddExpense: to: self;
-		when: TripDetailHideExpenseFormRequested
-		send: #onHideExpenseForm
-		to: self;
-		when: TripDetailGiftAddRequested send: #onGiftAdd to: self;
-		when: TripDetailGiftRemoveRequested send: #onGiftRemove: to: self;
-		when: TripDetailGiftModeChanged send: #onGiftModeChanged: to: self;
-		when: TripDetailGiftFromChanged send: #onGiftFromChanged: to: self;
-		when: TripDetailGiftToChanged send: #onGiftToChanged: to: self;
-		when: TripDetailParticipantInclusionChanged
-		send: #onInclusionChanged:
-		to: self;
-		when: TripDetailParticipantWeightChanged
-		send: #onWeightChanged:
-		to: self;
-		when: TripDetailGiftAmountChanged
-		send: #onGiftAmountChanged:
-		to: self;
-		when: TripExpensePayerChanged send: #onPayerChanged: to: self;
-		when: TripExpenseAmountChanged send: #onAmountChanged: to: self
+
+
 ]

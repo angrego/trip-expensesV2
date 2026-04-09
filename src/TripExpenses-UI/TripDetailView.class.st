@@ -6,10 +6,6 @@ The back button announces TripDetailBackRequested.
 Class {
 	#name : 'TripDetailView',
 	#superclass : 'CpView',
-	#instVars : [
-		'weightRows',
-		'payerOptions'
-	],
 	#category : 'TripExpenses-UI-TripDetail',
 	#package : 'TripExpenses-UI',
 	#tag : 'TripDetail'
@@ -113,91 +109,9 @@ TripDetailView class >> template [
     '
 ]
 
-{ #category : 'rendering' }
-TripDetailView >> buildGiftEntries [
-
-	| entries |
-	entries := self model giftEntries.
-	entries ifNil: [ ^ #(  ) ].
-	^ (entries collect: [ :e |
-			   Dictionary new
-				   at: 'entryId' put: e entryId;
-				   at: 'fromId' put: (e fromId ifNil: [ '' ]);
-				   at: 'toId' put: (e toId ifNil: [ '' ]);
-				   at: 'mode' put: e mode asString;
-				   at: 'amount' put: (e amount ifNil: [ 0 ]);
-				   yourself ]) asArray
-]
-
-{ #category : 'rendering' }
-TripDetailView >> buildGiftModeSelectFor: dict [
-    | select mode |
-    mode := dict at: 'mode'.
-    select := CpHtmlElement newWithTag: 'select'.
-    select attributeAt: 'class' put: 'select-small'.
-    #('fixed' 'share') do: [ :m |
-        | opt |
-        opt := CpHtmlElement newWithTag: 'option'.
-        opt attributeAt: 'value' put: m.
-        mode = m ifTrue: [ opt attributeAt: 'selected' put: '' ].
-        opt textContent: (m = 'fixed' ifTrue: [ 'montant fixe' ] ifFalse: [ 'payer la part' ]).
-        select appendChild: opt ].
-    select
-        when: CpChangeEvent
-        do: [ self handleGiftModeChange: select forEntry: (dict at: 'entryId') ]
-        for: self.
-    ^ select
-]
-
-{ #category : 'event handling' }
-TripDetailView >> handleAddExpense [
-    | desc amount payerId weights |
-    desc    := (self shadowedElementWithId: #'expense-desc')   propertyAt: 'value'.
-    amount  := (self shadowedElementWithId: #'expense-amount') propertyAt: 'value'.
-    payerId := (self shadowedElementWithId: #'expense-payer')  propertyAt: 'value'.
-
-    weights := (weightRows isNil ifTrue: [ #() ] ifFalse: [ weightRows ])
-        collect: [ :assoc |
-            | cb inp pid w |
-            pid := assoc key.
-            cb  := assoc value first.
-            inp := assoc value second.
-            w   := (cb propertyAt: 'checked')
-                ifTrue:  [
-                    | v |
-                    v := inp propertyAt: 'value'.
-                    v isEmpty ifTrue: [ '1' ] ifFalse: [ v ] ]
-                ifFalse: [ '0' ].
-            pid , ':' , w ].
-
-    self serverAnnounce: (TripDetailAddExpenseRequested
-        description: desc
-        amountString: amount
-        payerId: payerId
-        weightsString: weights asArray)
-]
-
-{ #category : 'event handling' }
-TripDetailView >> handleAddGift [
-self serverAnnounce: TripDetailGiftAddRequested
-]
-
 { #category : 'event handling' }
 TripDetailView >> handleBack [
 	self serverAnnounce: TripDetailBackRequested
-]
-
-{ #category : 'rendering' }
-TripDetailView >> handleGiftModeChange: aSelect forEntry: anEntryId [
-    | newMode amountInput |
-    newMode := (aSelect propertyAt: 'value') asSymbol.
-    amountInput := aSelect nextElementSibling.
-    newMode = #share
-        ifTrue:  [ amountInput attributeAt: 'style' put: 'display:none' ]
-        ifFalse: [ amountInput removeAttributeAt: 'style' ].
-    self serverAnnounce: (TripDetailGiftModeChanged
-        entryId: anEntryId
-        mode: newMode)
 ]
 
 { #category : 'event handling' }

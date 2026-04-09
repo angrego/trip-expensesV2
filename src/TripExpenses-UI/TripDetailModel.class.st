@@ -213,34 +213,6 @@ TripDetailModel >> service: aTripApplicationService [
 ]
 
 { #category : 'accessing' }
-TripDetailModel >> setGiftEntry: anEntry amount: aNumber [
-    expenseFormModel setGiftEntry: anEntry amount: aNumber
-]
-
-{ #category : 'accessing' }
-TripDetailModel >> setGiftEntry: anEntry fromId: aString [
-    expenseFormModel setGiftEntry: anEntry fromId: aString
-]
-
-{ #category : 'accessing' }
-TripDetailModel >> setGiftEntry: anEntry mode: aSymbol [
-    anEntry mode: aSymbol.
-    self valueChanged
-]
-
-{ #category : 'accessing' }
-TripDetailModel >> setGiftEntry: anEntry toId: aString [
-    expenseFormModel setGiftEntry: anEntry toId: aString
-]
-
-{ #category : 'accessing' }
-TripDetailModel >> setGiftEntryId: anId mode: aSymbol [
-    expenseFormModel setGiftEntry: 
-        (expenseFormModel giftEntries detect: [ :e | e entryId = anId ])
-        mode: aSymbol
-]
-
-{ #category : 'accessing' }
 TripDetailModel >> setWeight: anInteger forParticipantId: aParticipantId [
     expenseFormModel participantEntries
         detect: [ :e | e participantId = aParticipantId ]

@@ -30,6 +30,16 @@ TripDetailPresenter >> onExpenseAdded [
 ]
 
 { #category : 'event handling' }
+TripDetailPresenter >> onExpenseFormHidden [
+    self model hideExpenseForm
+]
+
+{ #category : 'rendering' }
+TripDetailPresenter >> onHideExpenseForm [
+    self model hideExpenseForm
+]
+
+{ #category : 'event handling' }
 TripDetailPresenter >> onInclusionChanged: anAnnouncement [
     anAnnouncement included
         ifTrue:  [ self model includeParticipantId: anAnnouncement participantId ]
@@ -85,14 +95,18 @@ TripDetailPresenter >> renderView [
         atSlotNamed: #settlements
 ]
 
-{ #category : 'rendering' }
+{ #category : 'view' }
 TripDetailPresenter >> viewCreated [
-    super viewCreated.
-    self model addParticipantModel
-        when: ValueChanged
-        send: #onParticipantAdded
-        to: self.
-    self view
-        when: TripDetailBackRequested            send: #onBackRequested   to: self;
-        when: TripDetailShowExpenseFormRequested send: #onShowExpenseForm to: self
+
+	super viewCreated.
+	self model addParticipantModel
+		when: ValueChanged
+		send: #onParticipantAdded
+		to: self.
+	self view
+		when: TripDetailBackRequested send: #onBackRequested to: self;
+		when: TripDetailShowExpenseFormRequested
+		send: #onShowExpenseForm
+		to: self.
+		self view when: TripDetailHideExpenseFormRequested send: #onHideExpenseForm to: self.
 ]

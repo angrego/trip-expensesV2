@@ -77,10 +77,10 @@ TripGiftEntryView class >> template [
             <button id="btn-remove" class="btn-remove" title="Supprimer">✕</button>
         </div>
         <div class="slider-row">
-            <input id="slider" type="range" min="0" max="100" value="0">
+            <input id="slider" type="range" min="0" max="0" value="0">
             <span id="slider-value" class="slider-value">0</span>
         </div>
-        <div id="beneficiaries"></div>
+        <slot name="beneficiaries"></slot>
     </div>
     '
 ]
@@ -110,55 +110,6 @@ TripGiftEntryView >> initializeShadowRoot [
         when: CpInputEvent
         send: #handleSliderChanged
         to: self
-]
-
-{ #category : 'rendering' }
-TripGiftEntryView >> renderBeneficiaries: aCollectionOfArrays [
-
-	| container |
-	container := self shadowedElementWithId: #beneficiaries.
-	container removeChildren.
-	beneficiaryRows := OrderedCollection new.
-	aCollectionOfArrays do: [ :arr |
-			| pid name weight included row cb weightInput label |
-			pid := arr first.
-			name := arr at: 2.
-			weight := arr at: 3.
-			included := arr at: 4.
-			row := CpHtmlElement newWithTag: 'div'.
-			row addClass: 'beneficiary-row'.
-			cb := CpHtmlElement newWithTag: 'input'.
-			cb attributeAt: 'type' put: 'checkbox'.
-			cb attributeAt: 'data-pid' put: pid.
-			included ifTrue: [ cb attributeAt: 'checked' put: '' ].
-			cb
-				when: CpChangeEvent
-				do: [
-						self serverAnnounce: (TripGiftBeneficiaryToggled
-								 participantId: pid
-								 included: (cb propertyAt: 'checked')) ]
-				for: self.
-			label := CpHtmlElement newWithTag: 'span'.
-			label addClass: 'beneficiary-name'.
-			label textContent: name.
-			weightInput := CpHtmlElement newWithTag: 'input'.
-			weightInput attributeAt: 'type' put: 'number'.
-			weightInput attributeAt: 'min' put: '1'.
-			weightInput attributeAt: 'class' put: 'weight-input'.
-			weightInput propertyAt: 'value' put: weight printString.
-			included ifFalse: [ weightInput attributeAt: 'disabled' put: '' ].
-			weightInput
-				when: CpChangeEvent
-				do: [
-						| w |
-						w := (weightInput propertyAt: 'value') asNumber truncated.
-						self serverAnnounce:
-							(TripGiftWeightChanged participantId: pid weight: w) ]
-				for: self.
-			row appendChild: cb.
-			row appendChild: label.
-			row appendChild: weightInput.
-			container appendChild: row ]
 ]
 
 { #category : 'rendering' }

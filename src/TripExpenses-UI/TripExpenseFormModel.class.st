@@ -2,13 +2,8 @@ Class {
 	#name : 'TripExpenseFormModel',
 	#superclass : 'CpModel',
 	#instVars : [
-		'expenseId',
-		'description',
-		'amount',
+		'justOpened',
 		'currency',
-		'date',
-		'payerName',
-		'beneficiaryNames',
 		'service',
 		'tripId',
 		'participantEntries',
@@ -16,7 +11,8 @@ Class {
 		'errorMessage',
 		'showing',
 		'currentPayerId',
-		'currentAmount'
+		'currentAmount',
+		'participantWeightModels'
 	],
 	#category : 'TripExpenses-UI-Expense',
 	#package : 'TripExpenses-UI',
@@ -33,104 +29,68 @@ TripExpenseFormModel class >> onService: aTripApplicationService tripId: anId [
 
 { #category : 'adding' }
 TripExpenseFormModel >> addExpense: aDescription amount: anAmount payerId: aPayerId [
-
-	| trip payer payments weightedParticipants splitRule gifts expense |
-	(aDescription isNil or: [ aDescription trim isEmpty ]) ifTrue: [
-			errorMessage := 'La description ne peut pas être vide'.
-			self valueChanged.
-			^ self ].
-	(anAmount isNil or: [ anAmount <= 0 ]) ifTrue: [
-			errorMessage := 'Le montant doit être positif'.
-			self valueChanged.
-			^ self ].
-	trip := service findTrip: tripId.
-	payer := trip participants
-		         detect: [ :p | p id value = aPayerId ]
-		         ifNone: [
-				         errorMessage := 'Payeur introuvable'.
-				         self valueChanged.
-				         ^ self ].
-	payments := { (Payment
-		             participant: payer
-		             amount: (Money amount: anAmount currency: currency)) }.
-	weightedParticipants := self currentParticipantWeights select: [
-		                        :pair | pair value > 0 ].
-	weightedParticipants isEmpty ifTrue: [
-			errorMessage := 'Il faut au moins un participant'.
-			self valueChanged.
-			^ self ].
-	splitRule := EqualSplitRule among:
-		             (weightedParticipants collect: [ :pair |
-				              | p |
-				              p := trip participants
-					                   detect: [ :p2 | p2 id value = pair key ]
-					                   ifNone: [
-					                   Error signal:
-						                   'Participant introuvable : ' , pair key ].
-				              ParticipantWeight participant: p weight: pair value ]).
-	[
-		gifts := self
-			        buildGiftsFromEntries: giftEntries.
-		expense := Expense
-			           description: aDescription trim
-			           totalAmount: (Money amount: anAmount currency: currency)
-			           payments: payments
-			           splitRule: splitRule
-			           gifts: gifts
-			           date: Date today ]
-		on: Error
-		do: [ :e |
-				errorMessage := e messageText.
-				self valueChanged.
-				^ self ].
-	service addExpense: expense toTrip: tripId.
-	self hide
+    | trip payer splitRule gifts expense |
+    (self validateDescription: aDescription) ifFalse: [ ^ self ].
+    (self validateAmount: anAmount) ifFalse: [ ^ self ].
+    trip  := service findTrip: tripId.
+    payer := self findPayer: aPayerId inTrip: trip.
+    payer ifNil: [ ^ self ].
+    splitRule := self buildSplitRuleFor: trip.
+    splitRule ifNil: [ ^ self ].
+    [ 
+        gifts   := self buildGiftsFromEntries: giftEntries splitRule: splitRule totalAmount: anAmount.
+        expense := self buildExpense: aDescription amount: anAmount payer: payer splitRule: splitRule gifts: gifts.
+        service addExpense: expense toTrip: tripId.
+        self hide ]
+    on: Error
+    do: [ :e | errorMessage := e messageText. self valueChanged ]
 ]
 
 { #category : 'adding' }
 TripExpenseFormModel >> addGiftEntry [
-    | payer entry |
-    (currentPayerId isNil or: [ currentPayerId isEmpty ]) ifTrue: [ ^ self ].
-    (currentAmount isNil or: [ currentAmount <= 0 ]) ifTrue: [ ^ self ].
-    payer := participantEntries
-        detect: [ :e | e participantId = currentPayerId ]
-        ifNone: [ ^ self ].
-    entry := TripGiftEntryModel
-        fromParticipant: payer participant
-        maxAmount: currentAmount
-        beneficiaries: participantEntries.
-    giftEntries add: entry.
-    self valueChanged
+
+	| payer entry |
+	(currentPayerId isNil or: [ currentPayerId isEmpty ]) ifTrue: [
+		^ self ].
+	(currentAmount isNil or: [ currentAmount <= 0 ]) ifTrue: [ ^ self ].
+	payer := participantEntries
+		         detect: [ :e | e participantId = currentPayerId ]
+		         ifNone: [ ^ self ].
+	entry := TripGiftEntryModel
+		         fromParticipant: payer participant
+		         maxAmount: currentAmount
+		         beneficiaries: participantEntries.
+	giftEntries add: entry.
 ]
 
 { #category : 'accessing' }
-TripExpenseFormModel >> buildGiftsFromEntries: someEntries [
+TripExpenseFormModel >> buildExpense: aDescription amount: anAmount payer: aPayer splitRule: aSplitRule gifts: someGifts [
+    ^ Expense
+        description: aDescription trim
+        totalAmount: (Money amount: anAmount currency: currency)
+        payments: { Payment participant: aPayer amount: (Money amount: anAmount currency: currency) }
+        splitRule: aSplitRule
+        gifts: someGifts
+        date: Date today
+]
+
+{ #category : 'accessing' }
+TripExpenseFormModel >> buildGiftsFromEntries: someEntries splitRule: aSplitRule totalAmount: anAmount [
 
 	^ someEntries flatCollect: [ :e |
-			  | gifts |
-			  gifts := e toGift: currency.
+			  | payerShare gifts |
+			  e fromParticipant ifNil: [ ^ #(  ) ].
+			  payerShare := (aSplitRule computeShares:
+				                 (Money amount: anAmount currency: currency))
+				                at: e fromParticipant
+				                ifAbsent: [ Money amount: 0 currency: currency ].
+			  gifts := e toGift: currency payerShare: payerShare amount.
 			  gifts ifNil: [ #(  ) ] ifNotNil: [ gifts ] ]
 ]
 
-{ #category : 'accessing' }
-TripExpenseFormModel >> buildGiftsFromEntries: someEntries trip: aTrip splitRule: aSplitRule totalAmount: anAmount [
-    | totalWeight completeEntries rawGifts |
-    totalWeight := aSplitRule participantWeights
-        inject: 0
-        into: [ :sum :pw | sum + pw weight ].
-    completeEntries := someEntries select: [ :e | e isComplete ].
-    rawGifts := completeEntries flatCollect: [ :e |
-        e mode = #globalShare
-            ifTrue: [ self buildGlobalShareGiftsFromEntry: e
-                          trip: aTrip
-                          splitRule: aSplitRule
-                          totalWeight: totalWeight ]
-            ifFalse: [ { self buildSingleGiftFromEntry: e
-                              trip: aTrip
-                              splitRule: aSplitRule
-                              totalWeight: totalWeight
-                              totalAmount: anAmount } ] ].
-    ^ rawGifts select: [ :g | g isNil not ]
+{ #category : 'actions' }
+TripExpenseFormModel >> clearJustOpened [
+    justOpened := false
 ]
 
 { #category : 'accessing' }
@@ -160,6 +120,16 @@ TripExpenseFormModel >> errorMessage [
 ]
 
 { #category : 'accessing' }
+TripExpenseFormModel >> findPayer: aPayerId inTrip: aTrip [
+    ^ aTrip participants
+        detect: [ :p | p id value = aPayerId ]
+        ifNone: [
+            errorMessage := 'Payeur introuvable'.
+            self valueChanged.
+            nil ]
+]
+
+{ #category : 'accessing' }
 TripExpenseFormModel >> giftEntries [
 ^ giftEntries ifNil: [ OrderedCollection new ]
 ]
@@ -171,13 +141,14 @@ showing := false.
     self valueChanged
 ]
 
-{ #category : 'actions' }
+{ #category : 'initialization' }
 TripExpenseFormModel >> initialize [
-    super initialize.
-    showing := false.
-    participantEntries := OrderedCollection new.
-    giftEntries := OrderedCollection new.
- 
+
+	super initialize.
+	showing := false.
+	justOpened := false.
+	participantEntries := OrderedCollection new.
+	giftEntries := OrderedCollection new
 ]
 
 { #category : 'testing' }
@@ -185,9 +156,23 @@ TripExpenseFormModel >> isShowing [
 	^ showing ifNil: [ false ]
 ]
 
+{ #category : 'actions' }
+TripExpenseFormModel >> justOpened [
+
+	^ justOpened 
+]
+
 { #category : 'accessing' }
 TripExpenseFormModel >> participantEntries [
 	^ participantEntries ifNil: [ #() ]
+]
+
+{ #category : 'testing' }
+TripExpenseFormModel >> participantWeightModels [
+participantWeightModels ifNil: [
+        participantWeightModels := participantEntries collect: [ :e |
+            TripParticipantWeightModel fromEntry: e ] ].
+    ^ participantWeightModels
 ]
 
 { #category : 'removing' }
@@ -208,9 +193,11 @@ TripExpenseFormModel >> service: aTripApplicationService [
 
 { #category : 'accessing' }
 TripExpenseFormModel >> setCurrentAmount: aNumber [
-    currentAmount := aNumber.
-    giftEntries do: [ :g | g setMaxAmount: aNumber ].
-    self valueChanged
+
+	currentAmount := aNumber.
+	giftEntries do: [ :g | g setMaxAmount: aNumber ].
+	self updateShareLabels.
+	self valueChanged
 ]
 
 { #category : 'accessing' }
@@ -223,58 +210,32 @@ TripExpenseFormModel >> setCurrentPayerId: aPayerId [
 				         detect: [ :e | e participantId = aPayerId ]
 				         ifNone: [ nil ].
 			payer ifNotNil: [ g setFromParticipant: payer participant ] ].
-]
-
-{ #category : 'accessing' }
-TripExpenseFormModel >> setGiftEntry: anEntry amount: aNumber [
-    anEntry amount: aNumber
-]
-
-{ #category : 'accessing' }
-TripExpenseFormModel >> setGiftEntry: anEntry fromId: aString [
-    anEntry fromId: aString
-]
-
-{ #category : 'accessing' }
-TripExpenseFormModel >> setGiftEntry: anEntry mode: aSymbol [
-    anEntry mode: aSymbol.
-    self valueChanged
-]
-
-{ #category : 'initialization' }
-TripExpenseFormModel >> setGiftEntry: anEntry toId: aString [
-    anEntry toId: aString
-]
-
-{ #category : 'testing' }
-TripExpenseFormModel >> setGiftEntryId: anId amount: anAmount [
-    giftEntries
-        detect: [ :e | e entryId = anId ]
-        ifFound: [ :e | e amount: anAmount ]
-]
-
-{ #category : 'accessing' }
-TripExpenseFormModel >> setGiftEntryId: anId mode: aSymbol [
-    giftEntries
-        detect: [ :e | e entryId = anId ]
-        ifFound: [ :e | self setGiftEntry: e mode: aSymbol ]
+		self valueChanged
 ]
 
 { #category : 'actions' }
 TripExpenseFormModel >> show [
 
-| trip |
-    trip := service findTrip: tripId.
-    participantEntries := trip participants collect: [ :p |
-        TripExpenseParticipantEntry forParticipant: p ].
-    giftEntries    := OrderedCollection new.
-    errorMessage   := nil.
-    currentAmount  := nil.
-    currentPayerId := participantEntries isEmpty
-        ifTrue:  [ nil ]
-        ifFalse: [ participantEntries first participantId ].
-    showing := true.
-    self valueChanged
+	| trip |
+	trip := service findTrip: tripId.
+	participantWeightModels := nil.
+	participantEntries := trip participants collect: [ :p |
+		                      TripExpenseParticipantEntry forParticipant: p ].
+	giftEntries := OrderedCollection new.
+	errorMessage := nil.
+	currentAmount := nil.
+	currentPayerId := participantEntries isEmpty
+		                  ifTrue: [ nil ]
+		                  ifFalse: [ participantEntries first participantId ].
+	showing := true.
+	self valueChanged
+]
+
+{ #category : 'accessing' }
+TripExpenseFormModel >> totalWeight [
+    ^ participantEntries
+        inject: 0
+        into: [ :sum :e | e included ifTrue: [ sum + e weight ] ifFalse: [ sum ] ]
 ]
 
 { #category : 'private - setting' }
@@ -286,6 +247,18 @@ TripExpenseFormModel >> tripId: anId [
     currency := trip currency.
     participantEntries := trip participants collect: [ :p |
         TripExpenseParticipantEntry forParticipant: p ]
+]
+
+{ #category : 'rendering' }
+TripExpenseFormModel >> updateShareLabels [
+
+	| amount |
+	amount := currentAmount ifNil: [ 0 ].
+	self participantWeightModels do: [ :m |
+			m
+				updateShareForAmount: amount
+				totalWeight: self totalWeight
+				currency: currency ]
 ]
 
 { #category : 'accessing' }
@@ -305,4 +278,22 @@ TripExpenseFormModel >> updateWeightsFrom: aCollectionOfArrays [
 							ifFalse: [
 									e included: false.
 									e weight: 1 ] ] ]
+]
+
+{ #category : 'accessing' }
+TripExpenseFormModel >> validateAmount: anAmount [
+    (anAmount isNil or: [ anAmount <= 0 ]) ifTrue: [
+        errorMessage := 'Le montant doit être positif'.
+        self valueChanged.
+        ^ false ].
+    ^ true
+]
+
+{ #category : 'accessing' }
+TripExpenseFormModel >> validateDescription: aDescription [
+    (aDescription isNil or: [ aDescription trim isEmpty ]) ifTrue: [
+        errorMessage := 'La description ne peut pas être vide'.
+        self valueChanged.
+        ^ false ].
+    ^ true
 ]

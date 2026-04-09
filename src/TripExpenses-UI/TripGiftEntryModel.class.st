@@ -42,7 +42,7 @@ TripGiftEntryModel >> entryId [
 
 { #category : 'accessing' }
 TripGiftEntryModel >> excludeBeneficiaryId: aParticipantId [
-    beneficiaries
+beneficiaries
         detect: [ :b | b participantId = aParticipantId ]
         ifFound: [ :b | b included: false ].
     self valueChanged
@@ -52,6 +52,11 @@ TripGiftEntryModel >> excludeBeneficiaryId: aParticipantId [
 TripGiftEntryModel >> fromId [
 fromParticipant ifNil: [ ^ nil ].
     ^ fromParticipant id value
+]
+
+{ #category : 'accessing' }
+TripGiftEntryModel >> fromParticipant [
+    ^ fromParticipant
 ]
 
 { #category : 'accessing' }
@@ -129,14 +134,17 @@ TripGiftEntryModel >> sliderValue: aNumber [
 ]
 
 { #category : 'accessing' }
-TripGiftEntryModel >> toGift: aCurrency [
-    | included totalWeight |
-    self isComplete ifFalse: [ ^ nil ].
+TripGiftEntryModel >> toGift: aCurrency payerShare: aPayerShare [
+    | netAmount included totalWeight |
+    self isComplete ifFalse: [ ^ #() ].
+    netAmount := sliderValue - aPayerShare.
+    netAmount <= 0 ifTrue: [ ^ #() ].
     included    := beneficiaries select: [ :b | b included ].
     totalWeight := included inject: 0 into: [ :sum :b | sum + b weight ].
+    totalWeight = 0 ifTrue: [ ^ #() ].
     ^ included collect: [ :b |
         | share |
-        share := (sliderValue * b weight / totalWeight) rounded.
+        share := (netAmount * b weight / totalWeight) rounded.
         Gift
             from:   fromParticipant
             to:     b participant

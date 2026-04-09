@@ -2,7 +2,8 @@ Class {
 	#name : 'TripParticipantWeightModelTest',
 	#superclass : 'TestCase',
 	#instVars : [
-		'model'
+		'model',
+		'alice'
 	],
 	#category : 'TripExpenses-UI-Tests-ParticipantWeight',
 	#package : 'TripExpenses-UI-Tests',
@@ -13,11 +14,9 @@ Class {
 TripParticipantWeightModelTest >> setUp [
 
 	super setUp.
+	alice := Participant name: 'Alice'.
 	model := TripParticipantWeightModel
-		         participantId: 'alice-id'
-		         name: 'Alice'
-		         weight: 1
-		         included: true
+participant: alice weight:1  included: true
 ]
 
 { #category : 'initialize state' }
@@ -32,7 +31,7 @@ TripParticipantWeightModelTest >> testName [
 
 { #category : 'initialize state' }
 TripParticipantWeightModelTest >> testParticipantId [
-    self assert: model participantId equals: 'alice-id'
+    self assert: model participantId equals: alice id value.
 ]
 
 { #category : 'presenter' }
@@ -57,6 +56,21 @@ TripParticipantWeightModelTest >> testSetIncludedAnnouncesValueChanged [
     self assert: announced
 ]
 
+{ #category : 'initialize state' }
+TripParticipantWeightModelTest >> testSetShareLabel [
+    model shareLabel: '30 EUR'.
+    self assert: model shareLabel equals: '30 EUR'
+]
+
+{ #category : 'initialize state' }
+TripParticipantWeightModelTest >> testSetShareLabelAnnouncesValueChanged [
+    | announced |
+    announced := false.
+    model when: ValueChanged do: [ announced := true ].
+    model shareLabel: '30 EUR'.
+    self assert: announced
+]
+
 { #category : 'mutations' }
 TripParticipantWeightModelTest >> testSetWeight [
     model weight: 2.
@@ -70,6 +84,11 @@ TripParticipantWeightModelTest >> testSetWeightAnnouncesValueChanged [
     model when: ValueChanged do: [ announced := true ].
     model weight: 2.
     self assert: announced
+]
+
+{ #category : 'initialize state' }
+TripParticipantWeightModelTest >> testShareLabelDefaultIsEmpty [
+    self assert: model shareLabel isEmpty
 ]
 
 { #category : 'initialize state' }

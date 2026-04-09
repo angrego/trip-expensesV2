@@ -18,6 +18,7 @@ Class {
 TripExpenseFormModelTest >> setUp [
 
 	| trip alice bob charlie |
+	super setUp.
 	service := TripApplicationService withRepository:
 		           InMemoryTripRepository new.
 	trip := service createTrip: 'Vacances' currency: 'EUR'.

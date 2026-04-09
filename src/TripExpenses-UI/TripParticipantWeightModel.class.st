@@ -2,10 +2,10 @@ Class {
 	#name : 'TripParticipantWeightModel',
 	#superclass : 'CpModel',
 	#instVars : [
-		'participantId',
-		'name',
 		'weight',
-		'included'
+		'included',
+		'shareLabel',
+		'participant'
 	],
 	#category : 'TripExpenses-UI-ParticipantWeight',
 	#package : 'TripExpenses-UI',
@@ -14,23 +14,20 @@ Class {
 
 { #category : 'instance creation' }
 TripParticipantWeightModel class >> fromEntry: anEntry [
-    ^ self new
-        setParticipantId: anEntry participantId
-        name:             anEntry name
-        weight:           anEntry weight
-        included:         anEntry included;
-        yourself
+
+	^ self
+		  participant: anEntry participant
+		  weight: anEntry weight
+		  included: anEntry included.
 ]
 
 { #category : 'instance creation' }
-TripParticipantWeightModel class >> participantId: aParticipantId name: aParticipantName weight: anInteger included: aBoolean [
-
-	^ self new
-		  setParticipantId: aParticipantId
-		  name: aParticipantName
-		  weight: anInteger
-		  included: aBoolean;
-		 yourself
+TripParticipantWeightModel class >> participant: aParticipant weight: aWeight included: aBoolean [
+    ^ self new
+        setWeight:   aWeight
+        included:    aBoolean
+        participant: aParticipant;
+        yourself
 ]
 
 { #category : 'accessing' }
@@ -47,37 +44,81 @@ TripParticipantWeightModel >> included: anObject [
 
 { #category : 'accessing' }
 TripParticipantWeightModel >> name [
-	^ name
+
+	^ participant name
 ]
 
 { #category : 'accessing' }
-TripParticipantWeightModel >> name: anObject [
+TripParticipantWeightModel >> participant [
+^participant
+]
 
-	name := anObject
+{ #category : 'accessing' }
+TripParticipantWeightModel >> participant:aParticipant [
+participant := aParticipant .
 ]
 
 { #category : 'accessing' }
 TripParticipantWeightModel >> participantId [
-	^ participantId
+
+	^ participant id value.
 ]
 
-{ #category : 'accessing' }
-TripParticipantWeightModel >> participantId: anObject [
-
-	participantId := anObject
-]
-
-{ #category : 'accessing' }
+{ #category : 'presenter' }
 TripParticipantWeightModel >> preferredPresenterClass [
-    ^ TripParticipantWeightPresenter
+
+	^ TripParticipantWeightPresenter
 ]
 
 { #category : 'accessing' }
-TripParticipantWeightModel >> setParticipantId: anId name: aName weight: aWeight included: aBoolean [
-    participantId := anId.
-    name          := aName.
-    weight        := aWeight.
-    included      := aBoolean
+TripParticipantWeightModel >> setWeight: aWeight included: aBoolean participant: aParticipant [
+
+	participant := aParticipant.
+	weight := aWeight.
+	included := aBoolean.
+	shareLabel :=String new.
+]
+
+{ #category : 'accessing' }
+TripParticipantWeightModel >> shareLabel [
+	^ shareLabel
+]
+
+{ #category : 'accessing' }
+TripParticipantWeightModel >> shareLabel: aString [
+
+	shareLabel := aString.
+	self valueChanged.
+]
+
+{ #category : 'accessing' }
+TripParticipantWeightModel >> shareLabelForAmount: anAmount totalWeight: aTotalWeight currency: aCurrency [
+    self included ifFalse: [ ^ '–' ].
+    aTotalWeight = 0 ifTrue: [ ^ '0 ' , aCurrency ].
+    ^ (anAmount * weight / aTotalWeight roundTo: 0.01) printString , ' ' , aCurrency
+]
+
+{ #category : 'accessing' }
+TripParticipantWeightModel >> updateShareForAmount: anAmount totalWeight: aTotalWeight currency: aCurrency [
+
+	| label share stream |
+	label := included
+		         ifFalse: [ '–' ]
+		         ifTrue: [
+				         aTotalWeight = 0
+					         ifTrue: [ '0 ' , aCurrency ]
+					         ifFalse: [
+							         share := anAmount * weight / aTotalWeight roundTo:
+								                  0.01.
+							         stream := WriteStream on: String new.
+							         stream
+								         nextPutAll: share printString;
+								         nextPut: $ ;
+								         nextPutAll: aCurrency.
+							         stream contents ] ].
+	shareLabel = label ifTrue: [ ^ self ].
+	shareLabel := label.
+	self valueChanged
 ]
 
 { #category : 'accessing' }
