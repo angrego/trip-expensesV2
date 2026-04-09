@@ -105,13 +105,14 @@ TripGiftEntryModel >> setMaxAmount: aNumber [
 
 { #category : 'accessing' }
 TripGiftEntryModel >> setMaxAmount: aMaxAmount beneficiaries: aCollection [
-super initialize.    
-maxAmount        := aMaxAmount.
-entryId          := UUID new asString.
-    sliderValue      := 0.
-    fromParticipant  := nil.
-    allBeneficiaries := aCollection copy.
-    beneficiaries    := aCollection copy
+
+	maxAmount := aMaxAmount.
+	entryId := UUID new asString.
+	sliderValue := 0.
+	fromParticipant := nil.
+	allBeneficiaries := aCollection collect: [ :e |
+		                    TripParticipantWeightModel fromEntry: e ].
+	beneficiaries := allBeneficiaries copy
 ]
 
 { #category : 'accessing' }

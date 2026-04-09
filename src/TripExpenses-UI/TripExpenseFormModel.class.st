@@ -88,6 +88,26 @@ TripExpenseFormModel >> buildGiftsFromEntries: someEntries splitRule: aSplitRule
 			  gifts ifNil: [ #(  ) ] ifNotNil: [ gifts ] ]
 ]
 
+{ #category : 'accessing' }
+TripExpenseFormModel >> buildSplitRuleFor: aTrip [
+    | weighted |
+    weighted := self currentParticipantWeights select: [ :pair | pair value > 0 ].
+    weighted isEmpty ifTrue: [
+        errorMessage := 'Il faut au moins un participant'.
+        self valueChanged.
+        ^ nil ].
+    ^ EqualSplitRule among: (weighted collect: [ :pair |
+        | p |
+        p := aTrip participants
+            detect: [ :p2 | p2 id value = pair key ]
+            ifNone: [
+                Error signal: (String streamContents: [ :s |
+                    s
+                        nextPutAll: 'Participant introuvable : ';
+                        nextPutAll: pair key ]) ].
+        ParticipantWeight participant: p weight: pair value ])
+]
+
 { #category : 'actions' }
 TripExpenseFormModel >> clearJustOpened [
     justOpened := false
