@@ -106,6 +106,9 @@ TripDetailView class >> template [
         <slot name="settlements"></slot>
         <div id="empty-settlements" class="empty">Tout le monde est quitte !!!!</div>
     </div>
+<div class="section">
+    <slot name="generosity"></slot>
+</div>
     '
 ]
 

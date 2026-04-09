@@ -2,10 +2,9 @@ Class {
 	#name : 'TripSettlementItemModel',
 	#superclass : 'CpModel',
 	#instVars : [
-		'fromName',
-		'toName',
-		'amount',
-		'currency'
+		'fromParticipant',
+		'toParticipant',
+		'money'
 	],
 	#category : 'TripExpenses-UI-Settlement',
 	#package : 'TripExpenses-UI',
@@ -13,41 +12,38 @@ Class {
 }
 
 { #category : 'instance creation' }
-TripSettlementItemModel class >> fromDict: aDict [
-	"Conservé pour compatibilité."
-	^ self new
-		setFrom:     (aDict at: 'from')
-		to:          (aDict at: 'to')
-		amount:      (aDict at: 'amount')
-		currency:    (aDict at: 'currency');
-		yourself
-]
-
-{ #category : 'instance creation' }
 TripSettlementItemModel class >> fromSettlement: aSettlement [
 	"Construit depuis un objet Settlement du domaine.
 	 Settlement expose #from (Participant), #to (Participant), #amount (Money)."
+
 	^ self new
-		setFrom:     aSettlement from name
-		to:          aSettlement to name
-		amount:      aSettlement amount amount
-		currency:    aSettlement amount currency;
-		yourself
+		  setFrom: aSettlement from 
+		  to: aSettlement to 
+		  money: aSettlement amount;
+		  yourself
 ]
 
 { #category : 'accessing' }
 TripSettlementItemModel >> amount [
-	^ amount
+
+	^ money amount printString
 ]
 
 { #category : 'accessing' }
 TripSettlementItemModel >> currency [
-	^ currency
+
+	^ money currency
 ]
 
 { #category : 'accessing' }
-TripSettlementItemModel >> fromName [
-	^ fromName
+TripSettlementItemModel >> fromParticipant [
+
+	^ fromParticipant name
+]
+
+{ #category : 'accessing' }
+TripSettlementItemModel >> money:aMoney [
+money:=aMoney 
 ]
 
 { #category : 'testing' }
@@ -56,14 +52,14 @@ TripSettlementItemModel >> preferredPresenterClass [
 ]
 
 { #category : 'private - setting' }
-TripSettlementItemModel >> setFrom: aFromName to: aToName amount: anAmount currency: aCurrency [
-	fromName := aFromName.
-	toName := aToName.
-	amount := anAmount printString.
-	currency := aCurrency
+TripSettlementItemModel >> setFrom: aFromParticipant to: aToParticipant money: aMoney [
+
+	fromParticipant := aFromParticipant.
+	toParticipant := aToParticipant.
+	money:=aMoney
 ]
 
 { #category : 'accessing' }
-TripSettlementItemModel >> toName [
-	^ toName
+TripSettlementItemModel >> toParticipantName [
+    ^ toParticipant name
 ]

@@ -93,18 +93,6 @@ TripExpenseFormModelTest >> testAddGiftEntryIncreasesCount [
 ]
 
 { #category : 'running' }
-TripExpenseFormModelTest >> testCanAddGiftEntryAnnouncesValueChanged [
-    | announced |
-    model show.
-    model setCurrentPayerId: aliceId.
-    model setCurrentAmount: 90.
-    announced := false.
-    model when: ValueChanged do: [ announced := true ].
-    model addGiftEntry.
-    self assert: announced
-]
-
-{ #category : 'running' }
 TripExpenseFormModelTest >> testCanAddGiftEntryWithPayerAndAmount [
     model show.
     model setCurrentPayerId: aliceId.

@@ -9,8 +9,7 @@ Class {
 	#instVars : [
 		'description',
 		'amountString',
-		'payerId',
-		'weightsString'
+		'payerId'
 	],
 	#category : 'TripExpenses-UI-TripDetail',
 	#package : 'TripExpenses-UI',

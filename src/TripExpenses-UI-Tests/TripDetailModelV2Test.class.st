@@ -134,7 +134,7 @@ TripDetailModelV2Test >> testAddExpenseSettlementHasFromAndTo [
 	self addExpenseAmount: 60.
 
 	s := model settlements first.
-	self assert: (s fromName isNotNil and: [ s toName isNotNil ])
+	self assert: (s fromParticipant isNotNil and: [ s toParticipantName isNotNil ])
 ]
 
 { #category : 'tests - ajout dépense' }

@@ -95,5 +95,7 @@ TripExpensesServerApp >> installViews [
 		installClass: TripSettlementItemView;
 		installClass: TripGiftEntryView;
 		installClass: TripExpenseFormView;
-		installClass: TripParticipantWeightView
+		installClass: TripParticipantWeightView;
+		installClass: TripGenerosityView;
+installClass: TripGenerosityItemView.
 ]

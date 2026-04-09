@@ -2,9 +2,8 @@ Class {
 	#name : 'TripBalanceItemModel',
 	#superclass : 'CpModel',
 	#instVars : [
-		'participantName',
-		'amount',
-		'currency'
+		'participant',
+		'money'
 	],
 	#category : 'TripExpenses-UI-Balance',
 	#package : 'TripExpenses-UI',
@@ -12,38 +11,31 @@ Class {
 }
 
 { #category : 'instance creation' }
-TripBalanceItemModel class >> fromDict: aDict [
-	"Conservé pour compatibilité."
-	^ self new
-		setName:     (aDict at: 'participantName')
-		amount:      (aDict at: 'amount')
-		currency:    (aDict at: 'currency');
-		yourself
-]
-
-{ #category : 'instance creation' }
 TripBalanceItemModel class >> fromParticipant: aParticipant money: aMoney [
 	"Construit depuis un Participant et un Money du domaine."
+
 	^ self new
-		setName:     aParticipant name
-		amount:      aMoney amount
-		currency:    aMoney currency;
-		yourself
+		  setParticipant:  aParticipant
+		  money: aMoney;
+		  yourself
 ]
 
 { #category : 'accessing' }
 TripBalanceItemModel >> amount [
-	^ amount
+
+	^ money amount printString
 ]
 
 { #category : 'accessing' }
 TripBalanceItemModel >> currency [
-	^ currency
+
+	^ money currency
 ]
 
 { #category : 'accessing' }
 TripBalanceItemModel >> participantName [
-	^ participantName
+
+	^ participant name
 ]
 
 { #category : 'testing' }
@@ -52,8 +44,8 @@ TripBalanceItemModel >> preferredPresenterClass [
 ]
 
 { #category : 'private - setting' }
-TripBalanceItemModel >> setName: aName amount: anAmount currency: aCurrency [
-	participantName := aName.
-	amount := anAmount printString.
-	currency := aCurrency
+TripBalanceItemModel >> setParticipant: aParticipant money: aMoney [
+
+	participant := aParticipant .
+	money := aMoney .
 ]

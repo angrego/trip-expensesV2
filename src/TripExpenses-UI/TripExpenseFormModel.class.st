@@ -173,7 +173,8 @@ TripExpenseFormModel >> initialize [
 
 { #category : 'testing' }
 TripExpenseFormModel >> isShowing [
-	^ showing ifNil: [ false ]
+
+	^ showing 
 ]
 
 { #category : 'actions' }

@@ -17,7 +17,8 @@ Class {
 		'balanceModel',
 		'errorMessage',
 		'addParticipantModel',
-		'expenseFormModel'
+		'expenseFormModel',
+		'generosityModel'
 	],
 	#category : 'TripExpenses-UI-TripDetail',
 	#package : 'TripExpenses-UI',
@@ -116,6 +117,11 @@ TripDetailModel >> expenses [
 ]
 
 { #category : 'accessing' }
+TripDetailModel >> generosityModel [
+    ^ generosityModel
+]
+
+{ #category : 'accessing' }
 TripDetailModel >> giftEntries [
 
 	expenseFormModel ifNil: [ ^ OrderedCollection new ].
@@ -161,6 +167,7 @@ TripDetailModel >> loadTrip [
 	participantListModel load.
 	expenseListModel load.
 	balanceModel load.
+	generosityModel load.
 	errorMessage := nil.
 	self valueChanged
 ]
@@ -264,9 +271,10 @@ TripDetailModel >> tripId: anId [
 	expenseListModel := TripExpenseListModel
 		                    onService: service
 		                    tripId: anId.
-		participantListModel := TripParticipantListModel
-        onService: service
-        tripId: anId
+	participantListModel := TripParticipantListModel
+		                        onService: service
+		                        tripId: anId.
+		generosityModel := TripGenerosityModel onService: service tripId: anId.
 ]
 
 { #category : 'accessing' }

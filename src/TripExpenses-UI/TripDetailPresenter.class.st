@@ -67,32 +67,36 @@ TripDetailPresenter >> onWeightChanged: anAnnouncement [
 
 { #category : 'rendering' }
 TripDetailPresenter >> renderView [
-    self view
-        renderTripName: self model tripName;
-        renderCurrency: self model currency;
-        renderTotalExpenses: self model totalExpenses;
-        renderErrorMessage: (self model errorMessage ifNil: [ '' ]);
-        renderShowExpenseForm: self model showingExpenseForm;
-        renderEmptySettlements: self model settlements isEmpty.
-    self
-        renderAllChildViewsForModels: self model participants
-        atSlotNamed: #participants.
-    self
-        renderChildViewForModel: self model addParticipantModel
-        atSlotNamed: #addParticipant.
-    self
-        renderAllChildViewsForModels: self model expenses
-        atSlotNamed: #expenses.
-    self model expenseFormModel isShowing ifTrue: [
-        self
-            renderChildViewForModel: self model expenseFormModel
-            atSlotNamed: #expenseForm ].
-    self
-        renderAllChildViewsForModels: self model balances
-        atSlotNamed: #balances.
-    self
-        renderAllChildViewsForModels: self model settlements
-        atSlotNamed: #settlements
+
+	self view
+		renderTripName: self model tripName;
+		renderCurrency: self model currency;
+		renderTotalExpenses: self model totalExpenses;
+		renderErrorMessage: (self model errorMessage ifNil: [ '' ]);
+		renderShowExpenseForm: self model showingExpenseForm;
+		renderEmptySettlements: self model settlements isEmpty.
+	self
+		renderAllChildViewsForModels: self model participants
+		atSlotNamed: #participants.
+	self
+		renderChildViewForModel: self model addParticipantModel
+		atSlotNamed: #addParticipant.
+	self
+		renderAllChildViewsForModels: self model expenses
+		atSlotNamed: #expenses.
+	self model expenseFormModel isShowing ifTrue: [
+			self
+				renderChildViewForModel: self model expenseFormModel
+				atSlotNamed: #expenseForm ].
+	self
+		renderAllChildViewsForModels: self model balances
+		atSlotNamed: #balances.
+	self
+		renderAllChildViewsForModels: self model settlements
+		atSlotNamed: #settlements.
+		self
+    renderChildViewForModel: self model generosityModel
+    atSlotNamed: #generosity.
 ]
 
 { #category : 'view' }

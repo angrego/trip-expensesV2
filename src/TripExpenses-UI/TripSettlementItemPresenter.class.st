@@ -9,8 +9,8 @@ Class {
 { #category : 'rendering' }
 TripSettlementItemPresenter >> renderView [
 	self view
-		renderFrom: self model fromName
-		to: self model toName
+		renderFrom: self model fromParticipant 
+		to: self model toParticipantName
 		amount: self model amount
 		currency: self model currency
 ]
