@@ -7,10 +7,24 @@ qui delegue a TripAppModel navigateToList qui annonce valueChanged.
 Class {
 	#name : 'TripDetailPresenter',
 	#superclass : 'CpPresenter',
+	#instVars : [
+		'participantListModel',
+		'expenseListModel',
+		'balanceModel',
+		'generosityModel'
+	],
 	#category : 'TripExpenses-UI-TripDetail',
 	#package : 'TripExpenses-UI',
 	#tag : 'TripDetail'
 }
+
+{ #category : 'operations' }
+TripDetailPresenter >> loadAllSubModels [
+    participantListModel load.
+    expenseListModel load.
+    balanceModel load.
+    generosityModel load
+]
 
 { #category : 'event handling' }
 TripDetailPresenter >> onBackRequested [
@@ -20,13 +34,15 @@ TripDetailPresenter >> onBackRequested [
 { #category : 'event handling' }
 TripDetailPresenter >> onDeleteExpenseId: anExpenseId [
 	"Appele par TripExpenseItemPresenter quand l utilisateur supprime une depense."
-
-	self model removeExpenseId: anExpenseId 
+    self model removeExpenseId: anExpenseId.
+    self loadAllSubModels
 ]
 
 { #category : 'event handling' }
 TripDetailPresenter >> onExpenseAdded [
-    self model loadTrip
+
+    self model loadTrip.
+    self loadAllSubModels
 ]
 
 { #category : 'event handling' }
@@ -34,7 +50,7 @@ TripDetailPresenter >> onExpenseFormHidden [
     self model hideExpenseForm
 ]
 
-{ #category : 'rendering' }
+{ #category : 'event handling' }
 TripDetailPresenter >> onHideExpenseForm [
     self model hideExpenseForm
 ]
@@ -48,9 +64,8 @@ TripDetailPresenter >> onInclusionChanged: anAnnouncement [
 
 { #category : 'event handling' }
 TripDetailPresenter >> onParticipantAdded [
-	"Le composant addParticipant a reussi — on recharge le voyage pour rafraichir la liste des participants et les balances."
-
-	self model loadTrip
+    self loadAllSubModels.
+    self renderView
 ]
 
 { #category : 'event handling' }
@@ -67,50 +82,59 @@ TripDetailPresenter >> onWeightChanged: anAnnouncement [
 
 { #category : 'rendering' }
 TripDetailPresenter >> renderView [
-
-	self view
-		renderTripName: self model tripName;
-		renderCurrency: self model currency;
-		renderTotalExpenses: self model totalExpenses;
-		renderErrorMessage: (self model errorMessage ifNil: [ '' ]);
-		renderShowExpenseForm: self model showingExpenseForm;
-		renderEmptySettlements: self model settlements isEmpty.
-	self
-		renderAllChildViewsForModels: self model participants
-		atSlotNamed: #participants.
-	self
-		renderChildViewForModel: self model addParticipantModel
-		atSlotNamed: #addParticipant.
-	self
-		renderAllChildViewsForModels: self model expenses
-		atSlotNamed: #expenses.
-	self model expenseFormModel isShowing ifTrue: [
-			self
-				renderChildViewForModel: self model expenseFormModel
-				atSlotNamed: #expenseForm ].
-	self
-		renderAllChildViewsForModels: self model balances
-		atSlotNamed: #balances.
-	self
-		renderAllChildViewsForModels: self model settlements
-		atSlotNamed: #settlements.
-		self
-    renderChildViewForModel: self model generosityModel
-    atSlotNamed: #generosity.
+    self view
+        renderTripName:       self model tripName;
+        renderCurrency:       self model currency;
+        renderTotalExpenses:  self model totalExpenses;
+        renderErrorMessage:   (self model errorMessage ifNil: [ '' ]);
+        renderShowExpenseForm: self model showingExpenseForm;
+        renderEmptySettlements: balanceModel settlements isEmpty.
+    self
+        renderAllChildViewsForModels: participantListModel participants
+        atSlotNamed: #participants.
+    self
+        renderChildViewForModel: self model addParticipantModel
+        atSlotNamed: #addParticipant.
+    self
+        renderAllChildViewsForModels: expenseListModel expenses
+        atSlotNamed: #expenses.
+    self model showingExpenseForm ifTrue: [
+        self
+            renderChildViewForModel: self model expenseFormModel
+            atSlotNamed: #expenseForm ].
+    self
+        renderAllChildViewsForModels: balanceModel balances
+        atSlotNamed: #balances.
+    self
+        renderAllChildViewsForModels: balanceModel settlements
+        atSlotNamed: #settlements.
+    self
+        renderChildViewForModel: generosityModel
+        atSlotNamed: #generosity
 ]
 
 { #category : 'view' }
 TripDetailPresenter >> viewCreated [
-
-	super viewCreated.
-	self model addParticipantModel
-		when: ValueChanged
-		send: #onParticipantAdded
-		to: self.
-	self view
-		when: TripDetailBackRequested send: #onBackRequested to: self;
-		when: TripDetailShowExpenseFormRequested
-		send: #onShowExpenseForm
-		to: self.
-		self view when: TripDetailHideExpenseFormRequested send: #onHideExpenseForm to: self.
+    super viewCreated.
+    participantListModel := TripParticipantListModel
+        onService: self model service
+        tripId:   self model tripId.
+    expenseListModel := TripExpenseListModel
+        onService: self model service
+        tripId:   self model tripId.
+    balanceModel := TripBalanceModel
+        onService: self model service
+        tripId:   self model tripId.
+    generosityModel := TripGenerosityModel
+        onService: self model service
+        tripId:   self model tripId.
+    self loadAllSubModels.
+    self model addParticipantModel
+        when: ValueChanged
+        send: #onParticipantAdded
+        to: self.
+    self view
+        when: TripDetailBackRequested            send: #onBackRequested    to: self;
+        when: TripDetailShowExpenseFormRequested send: #onShowExpenseForm  to: self;
+        when: TripDetailHideExpenseFormRequested send: #onHideExpenseForm  to: self
 ]

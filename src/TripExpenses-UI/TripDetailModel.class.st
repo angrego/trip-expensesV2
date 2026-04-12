@@ -12,14 +12,9 @@ Class {
 		'tripName',
 		'currency',
 		'totalExpenses',
-		'participantListModel',
-		'expenseListModel',
-		'balanceModel',
-		'errorMessage',
 		'addParticipantModel',
 		'expenseFormModel',
-		'generosityModel',
-		'currentExpenseGiftFormModel'
+		'errorMessage'
 	],
 	#category : 'TripExpenses-UI-TripDetail',
 	#package : 'TripExpenses-UI',
@@ -28,15 +23,14 @@ Class {
 
 { #category : 'instance creation' }
 TripDetailModel class >> onService: aTripApplicationService tripId: anId [
-	"aTripApplicationService est un TripApplicationService, jamais un TripExpensesServerApp."
-	^ self new
-		service: aTripApplicationService;
-		tripId:  anId;
-		loadTrip;
-		yourself
+    ^ self new
+        service: aTripApplicationService;
+        tripId:  anId;
+        loadTrip;
+        yourself
 ]
 
-{ #category : 'accessing' }
+{ #category : 'adding' }
 TripDetailModel >> addExpenseDescription: aDescription amount: anAmount payerId: aPayerId participantWeights: aPairCollection [
     aPairCollection isEmpty ifTrue: [
         errorMessage := 'Il faut au moins un participant'.
@@ -61,92 +55,39 @@ TripDetailModel >> addExpenseDescription: aDescription amount: anAmount payerId:
 ]
 
 { #category : 'accessing' }
-TripDetailModel >> addGiftEntry [
-
-	expenseFormModel addGiftEntry.
-	self valueChanged
-]
-
-{ #category : 'accessing' }
 TripDetailModel >> addParticipantModel [
+
 	^ addParticipantModel
 ]
 
 { #category : 'accessing' }
-TripDetailModel >> balances [
-
-	^  balanceModel balances
-]
-
-{ #category : 'accessing' }
 TripDetailModel >> currency [
+
 	^ currency
 ]
 
 { #category : 'accessing' }
-TripDetailModel >> currentExpenseGiftFormModel [
-    ^ currentExpenseGiftFormModel
-]
-
-{ #category : 'accessing' }
-TripDetailModel >> currentParticipantWeights [
-    ^ expenseFormModel currentParticipantWeights
-]
-
-{ #category : 'accessing' }
 TripDetailModel >> errorMessage [
+
 	^ errorMessage
 ]
 
 { #category : 'accessing' }
-TripDetailModel >> errorMessage: aStringOrNil [
-	errorMessage := aStringOrNil
-]
+TripDetailModel >> errorMessage: aString [
 
-{ #category : 'accessing' }
-TripDetailModel >> excludeParticipantId: aParticipantId [
-    expenseFormModel participantEntries
-        detect: [ :e | e participantId = aParticipantId ]
-        ifFound: [ :e | e included: false ].
-    self valueChanged
+	errorMessage := aString
 ]
 
 { #category : 'accessing' }
 TripDetailModel >> expenseFormModel [
-    ^ expenseFormModel
-]
 
-{ #category : 'accessing' }
-TripDetailModel >> expenses [
-
-	^ expenseListModel expenses
-]
-
-{ #category : 'accessing' }
-TripDetailModel >> generosityModel [
-    ^ generosityModel
-]
-
-{ #category : 'accessing' }
-TripDetailModel >> giftEntries [
-
-	expenseFormModel ifNil: [ ^ OrderedCollection new ].
-	^ expenseFormModel giftEntries
+	^ expenseFormModel
 ]
 
 { #category : 'operations' }
 TripDetailModel >> hideExpenseForm [
-
-expenseFormModel hide.
+    expenseFormModel hide.
     errorMessage := nil.
-    self valueChanged
-]
-
-{ #category : 'accessing' }
-TripDetailModel >> includeParticipantId: aParticipantId [
-    expenseFormModel participantEntries
-        detect: [ :e | e participantId = aParticipantId ]
-        ifFound: [ :e | e included: true ].
     self valueChanged
 ]
 
@@ -164,31 +105,13 @@ TripDetailModel >> initialize [
 
 { #category : 'operations' }
 TripDetailModel >> loadTrip [
-
-	| trip |
-	trip := service findTrip: tripId.
-	tripName := trip name.
-	currency := trip currency.
-	totalExpenses := trip totalExpenses amount printString.
-	participantListModel load.
-	expenseListModel load.
-	balanceModel load.
-	generosityModel load.
-	errorMessage := nil.
-	self valueChanged
-]
-
-{ #category : 'accessing' }
-TripDetailModel >> participantFormEntries [
-
-	expenseFormModel ifNil: [ ^ OrderedCollection new ].
-	^ expenseFormModel participantEntries
-]
-
-{ #category : 'accessing' }
-TripDetailModel >> participants [
-
-	^ participantListModel participants
+    | trip |
+    trip := service findTrip: tripId.
+    tripName      := trip name.
+    currency      := trip currency.
+    totalExpenses := trip totalExpenses amount printString.
+    errorMessage  := nil.
+    self valueChanged
 ]
 
 { #category : 'testing' }
@@ -196,8 +119,10 @@ TripDetailModel >> preferredPresenterClass [
 	^ TripDetailPresenter
 ]
 
-{ #category : 'accessing' }
+{ #category : 'removing' }
 TripDetailModel >> removeExpenseId: anExpenseId [
+    | expenseListModel |
+    expenseListModel := TripExpenseListModel onService: service tripId: tripId.
     [ expenseListModel removeExpenseId: anExpenseId ]
         on: Error
         do: [ :e |
@@ -208,13 +133,6 @@ TripDetailModel >> removeExpenseId: anExpenseId [
 ]
 
 { #category : 'accessing' }
-TripDetailModel >> removeGiftEntryId: anId [
-
-	expenseFormModel removeGiftEntryId: anId.
-	self valueChanged
-]
-
-{ #category : 'accessing' }
 TripDetailModel >> service [
 
 	^ service
@@ -222,86 +140,51 @@ TripDetailModel >> service [
 
 { #category : 'private - setting' }
 TripDetailModel >> service: aTripApplicationService [
-	service := aTripApplicationService
+    service := aTripApplicationService
 ]
 
-{ #category : 'accessing' }
-TripDetailModel >> setWeight: anInteger forParticipantId: aParticipantId [
-    expenseFormModel participantEntries
-        detect: [ :e | e participantId = aParticipantId ]
-        ifFound: [ :e | e weight: anInteger ].
-    self valueChanged
-]
-
-{ #category : 'accessing' }
-TripDetailModel >> settlements [
-
-	^ balanceModel settlements 
-]
-
-{ #category : 'accessing' }
+{ #category : 'testing' }
 TripDetailModel >> showExpenseForm [
-
-expenseFormModel show.
+    expenseFormModel show.
     errorMessage := nil.
     self valueChanged
 ]
 
-{ #category : 'actions' }
-TripDetailModel >> showExpenseFormForParticipant: aParticipantName [
-    expenseFormModel showForParticipant: aParticipantName.
+{ #category : 'operations' }
+TripDetailModel >> showExpenseFormForParticipant: aName [
+    expenseFormModel showForParticipant: aName.
     errorMessage := nil.
     self valueChanged
 ]
 
-{ #category : 'accessing' }
-TripDetailModel >> showGiftFormForExpense: anExpenseId currentParticipantName: aName [
-    currentExpenseGiftFormModel := TripExpenseGiftFormModel
-        onService: service
-        tripId: tripId
-        expenseId: anExpenseId
-        currentParticipantName: aName.
-    currentExpenseGiftFormModel show.
-    self valueChanged
-]
-
-{ #category : 'accessing' }
+{ #category : 'testing' }
 TripDetailModel >> showingExpenseForm [
-
- ^ expenseFormModel isShowing
+    ^ expenseFormModel isShowing
 ]
 
 { #category : 'accessing' }
 TripDetailModel >> totalExpenses [
+
 	^ totalExpenses
 ]
 
 { #category : 'accessing' }
 TripDetailModel >> tripId [
+
 	^ tripId
 ]
 
 { #category : 'private - setting' }
 TripDetailModel >> tripId: anId [
-
-	tripId := anId.
-	addParticipantModel := TripAddParticipantModel
-		                       onService: service
-		                       tripId: anId.
-	expenseFormModel := TripExpenseFormModel
-		                    onService: service
-		                    tripId: anId.
-	balanceModel := TripBalanceModel onService: service tripId: anId.
-	expenseListModel := TripExpenseListModel
-		                    onService: service
-		                    tripId: anId.
-	participantListModel := TripParticipantListModel
-		                        onService: service
-		                        tripId: anId.
-		generosityModel := TripGenerosityModel onService: service tripId: anId.
+    tripId := anId.
+    addParticipantModel := TripAddParticipantModel
+        onService: service tripId: anId.
+    expenseFormModel := TripExpenseFormModel
+        onService: service tripId: anId
 ]
 
 { #category : 'accessing' }
 TripDetailModel >> tripName [
+
 	^ tripName
 ]

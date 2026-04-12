@@ -137,14 +137,13 @@ TripDetailModelV2Test >> testAddExpenseSettlementHasFromAndTo [
 	self assert: (s fromParticipantName isNotNil and: [ s toParticipantName isNotNil ])
 ]
 
-{ #category : 'tests - ajout dépense' }
+{ #category : 'tests - chargement' }
 TripDetailModelV2Test >> testAddExpenseUpdatesBalances [
-
-	| aliceBalance |
-	self addExpenseAmount: 60.
-	aliceBalance := model balances detect: [ :b |
-		                b participantName = 'Alice' ].
-	self assert: aliceBalance amount equals: '30'
+    | aliceBalance |
+    self addExpenseAmount: 60.
+    aliceBalance := (service findTrip: tripId) balances
+        associationsDo: [ :a | a key name = 'Alice' ifTrue: [ ^ a value ] ].
+    self assert: aliceBalance amount equals: 30
 ]
 
 { #category : 'tests - validation' }
