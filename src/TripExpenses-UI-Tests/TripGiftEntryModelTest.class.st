@@ -30,6 +30,24 @@ TripGiftEntryModelTest >> setUp [
             TripExpenseParticipantEntry forParticipant: alice.
             TripExpenseParticipantEntry forParticipant: bob.
             TripExpenseParticipantEntry forParticipant: charlie }
+        theoreticalShares: Dictionary new
+]
+
+{ #category : 'helper' }
+TripGiftEntryModelTest >> setUpWithShares [
+    | theoreticalShares |
+    theoreticalShares := Dictionary new.
+    theoreticalShares at: alice   put: (Money amount: 30 currency: 'EUR').
+    theoreticalShares at: bob     put: (Money amount: 30 currency: 'EUR').
+    theoreticalShares at: charlie put: (Money amount: 30 currency: 'EUR').
+    model := TripGiftEntryModel
+        fromParticipant: alice
+        maxAmount: 90
+        beneficiaries: {
+            TripExpenseParticipantEntry forParticipant: alice.
+            TripExpenseParticipantEntry forParticipant: bob.
+            TripExpenseParticipantEntry forParticipant: charlie }
+        theoreticalShares: theoreticalShares
 ]
 
 { #category : 'running' }
@@ -153,10 +171,63 @@ TripGiftEntryModelTest >> testMaxAmountIsPayerAmount [
     self assert: model maxAmount equals: 90
 ]
 
+{ #category : 'tests' }
+TripGiftEntryModelTest >> testPayPartForAnnouncesValueChanged [
+    | announced |
+    self setUpWithShares.
+    announced := false.
+    model when: ValueChanged do: [ announced := true ].
+    model payPartFor: bobId.
+    self assert: announced
+]
+
+{ #category : 'tests' }
+TripGiftEntryModelTest >> testPayPartForBobAndCharlieAccumulates [
+    self setUpWithShares.
+    model payPartFor: bobId.
+    model payPartFor: charlieId.
+    self assert: model sliderValue equals: 90
+]
+
+{ #category : 'tests' }
+TripGiftEntryModelTest >> testPayPartForBobPositionsSliderCorrectly [
+    self setUpWithShares.
+    model payPartFor: bobId.
+    self assert: model sliderValue equals: 60
+]
+
+{ #category : 'tests' }
+TripGiftEntryModelTest >> testPayPartForCannotExceedMaxAmount [
+    self setUpWithShares.
+    model payPartFor: bobId.
+    model payPartFor: charlieId.
+    model payPartFor: bobId.
+    self assert: model sliderValue equals: 90
+]
+
+{ #category : 'tests' }
+TripGiftEntryModelTest >> testPayPartForUnknownParticipantDoesNothing [
+    self setUpWithShares.
+    model payPartFor: 'unknown-id'.
+    self assert: model sliderValue equals: 30
+]
+
 { #category : 'running' }
 TripGiftEntryModelTest >> testPayerIsExcludedFromBeneficiaries [
     "Alice est le payeur — elle ne doit pas apparaître comme bénéficiaire"
     self deny: (model beneficiaries anySatisfy: [ :b | b participantId = aliceId ])
+]
+
+{ #category : 'tests' }
+TripGiftEntryModelTest >> testPayerTheoreticalShare [
+    self setUpWithShares.
+    self assert: model payerTheoreticalShare equals: (Money amount: 30 currency: 'EUR')
+]
+
+{ #category : 'running' }
+TripGiftEntryModelTest >> testPayerTheoreticalShareAfterCreation [
+    self setUpWithShares.
+    self assert: model payerTheoreticalShare amount equals: 30
 ]
 
 { #category : 'running' }
@@ -240,6 +311,12 @@ TripGiftEntryModelTest >> testSliderAnnouncesValueChanged [
     model when: ValueChanged do: [ announced := true ].
     model sliderValue: 30.
     self assert: announced
+]
+
+{ #category : 'running' }
+TripGiftEntryModelTest >> testSliderInitializedToPayerShareAfterCreation [
+    self setUpWithShares.
+    self assert: model sliderValue equals: 30
 ]
 
 { #category : 'running' }

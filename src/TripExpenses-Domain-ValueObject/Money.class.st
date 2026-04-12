@@ -47,6 +47,14 @@ Money >> = other [
 	^ amount = other amount and: [ currency = other currency ]
 ]
 
+{ #category : 'arithmetic' }
+Money >> > aMoney [
+
+	self class = aMoney class ifFalse: [ ^ false ].
+
+	^ amount > aMoney amount and: [ currency = aMoney currency ]
+]
+
 { #category : 'accessing' }
 Money >> abs [
 ^ Money amount: amount abs currency: currency

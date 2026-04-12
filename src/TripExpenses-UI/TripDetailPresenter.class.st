@@ -55,7 +55,7 @@ TripDetailPresenter >> onParticipantAdded [
 
 { #category : 'event handling' }
 TripDetailPresenter >> onShowExpenseForm [
-	self model showExpenseForm
+    self model showExpenseFormForParticipant: self application currentParticipantName
 ]
 
 { #category : 'event handling' }

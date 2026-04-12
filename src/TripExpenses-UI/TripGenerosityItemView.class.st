@@ -10,17 +10,21 @@ Class {
 TripGenerosityItemView class >> style [
     <webResource: #css>
     ^ '
-    :host { display: block; }
-    .generosity-row {
+    :host { display: block; margin-bottom: .5rem; }
+    .generosity-card {
         display: flex;
         align-items: center;
         gap: .75rem;
-        padding: .4rem 0;
-        border-bottom: 1px solid #f0f0f0;
+        padding: .75rem 1rem;
+        border-radius: 10px;
+        background: white;
+        border: 1px solid #e8e8ff;
+        box-shadow: 0 1px 3px rgba(80,70,228,.06);
     }
-    .participant-name { flex: 1; font-size: .9rem; }
-    .amount { font-weight: 500; color: #5046e4; }
-    .currency { font-size: .85rem; color: #666; }
+    .medal { font-size: 1.2rem; }
+    .participant-name { flex: 1; font-weight: 500; font-size: .95rem; color: #1a1a2e; }
+    .amount { font-weight: 700; color: #5046e4; font-size: 1rem; }
+    .currency { font-size: .8rem; color: #888; margin-left: .2rem; }
     '
 ]
 
@@ -28,7 +32,8 @@ TripGenerosityItemView class >> style [
 TripGenerosityItemView class >> template [
     <webResource: #html>
     ^ '
-    <div class="generosity-row">
+    <div class="generosity-card">
+        <span id="medal" class="medal"></span>
         <span id="name" class="participant-name"></span>
         <span id="amount" class="amount"></span>
         <span id="currency" class="currency"></span>
@@ -44,6 +49,11 @@ TripGenerosityItemView >> renderAmount: aString [
 { #category : 'rendering' }
 TripGenerosityItemView >> renderCurrency: aString [
     (self shadowedElementWithId: #currency) textContent: aString
+]
+
+{ #category : 'rendering' }
+TripGenerosityItemView >> renderMedal: aString [
+    (self shadowedElementWithId: #medal) textContent: aString
 ]
 
 { #category : 'rendering' }

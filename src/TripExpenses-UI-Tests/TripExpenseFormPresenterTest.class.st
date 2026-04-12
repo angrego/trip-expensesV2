@@ -71,15 +71,6 @@ TripExpenseFormPresenterTest >> testAddExpenseWithModifiedWeightUsesNewWeight [
 ]
 
 { #category : 'running' }
-TripExpenseFormPresenterTest >> testAddGiftEntryIncreasesCount [
-    model show.
-    model setCurrentPayerId: aliceId.
-    model setCurrentAmount: 90.
-    model addGiftEntry.
-    self assert: model giftEntries size equals: 1
-]
-
-{ #category : 'running' }
 TripExpenseFormPresenterTest >> testHideFormClearsError [
     model show.
     model addExpense: '' amount: 90 payerId: aliceId.

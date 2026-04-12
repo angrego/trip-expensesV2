@@ -108,6 +108,28 @@ TripApplicationServiceTest >> testAddExpenseWithNonParticipantPayerRaisesError [
 ]
 
 { #category : 'tests - addParticipant' }
+TripApplicationServiceTest >> testAddGiftToExpense [
+    | trip alice bob splitRule expense gift |
+    trip  := service createTrip: 'Vacances' currency: 'EUR'.
+    alice := service addParticipantByName: 'Alice' toTrip: trip id.
+    bob   := service addParticipantByName: 'Bob'   toTrip: trip id.
+    splitRule := EqualSplitRule among: {
+        ParticipantWeight participant: alice.
+        ParticipantWeight participant: bob }.
+    expense := Expense
+        description: 'Resto'
+        totalAmount: (Money amount: 90 currency: 'EUR')
+        payments: { Payment participant: alice amount: (Money amount: 90 currency: 'EUR') }
+        splitRule: splitRule
+        gifts: {}
+        date: Date today.
+    service addExpense: expense toTrip: trip id.
+    gift := Gift from: alice to: bob amount: (Money amount: 30 currency: 'EUR').
+    service addGift: gift toExpense: expense id inTrip: trip id.
+    self assert: (service findTrip: trip id) expenses first gifts size equals: 1
+]
+
+{ #category : 'tests - addParticipant' }
 TripApplicationServiceTest >> testAddParticipantAppearsInTrip [
 	| trip participant reloaded |
 	trip        := service createTrip: 'Vacances' currency: 'EUR'.

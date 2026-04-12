@@ -11,8 +11,9 @@ Class {
 
 { #category : 'web resources' }
 TripGiftEntryView class >> style [
-    <webResource: #css>
-    ^ '
+
+	<webResource: #css>
+	^ '
     :host { display: block; }
     .gift-card {
         border: 1px solid #d0c8ff;
@@ -64,22 +65,49 @@ TripGiftEntryView class >> style [
         text-align: center;
     }
     .weight-input:disabled { background: #f0f0f0; color: #aaa; }
+.slider-container { 
+    position: relative; 
+    height: 30px; 
+    display: flex; 
+    align-items: center;
+    width: 100%;
+}
+.slider-track { 
+    position: absolute; 
+    left: 0; 
+    right: 0; 
+    height: 6px; 
+    border-radius: 3px; 
+    z-index: 0;
+    background: #e0e0e0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
     '
 ]
 
 { #category : 'web resources' }
 TripGiftEntryView class >> template [
-    <webResource: #html>
-    ^ '
+
+	<webResource: #html>
+	^ '
     <div class="gift-card">
         <div class="gift-header">
             <span class="gift-title">🎁 Cadeau</span>
             <button id="btn-remove" class="btn-remove" title="Supprimer">✕</button>
         </div>
-        <div class="slider-row">
-            <input id="slider" type="range" min="0" max="0" value="0">
-            <span id="slider-value" class="slider-value">0</span>
-        </div>
+<div class="slider-row">
+    <input id="slider" type="range" min="0" max="0" value="0">
+    <span id="slider-value" class="slider-value">0</span>
+</div>
+<div class="slider-labels">
+    <span id="payer-share-label" class="payer-share-label"></span>
+    <span class="slider-max-label" id="max-label"></span>
+</div>
+<div class="slider-hint">
+    <span id="payer-share-hint" class="payer-share-hint"></span>
+</div>
         <slot name="beneficiaries"></slot>
     </div>
     '
@@ -113,17 +141,15 @@ TripGiftEntryView >> initializeShadowRoot [
 ]
 
 { #category : 'rendering' }
-TripGiftEntryView >> renderMaxAmount: aMax [
-
-	(self shadowedElementWithId: #slider)
-		propertyAt: 'max'
-		put: aMax printString
-]
-
-{ #category : 'rendering' }
-TripGiftEntryView >> renderSliderValue: aValue [
-    (self shadowedElementWithId: #'slider')
-        propertyAt: 'value' put: aValue printString.
-    (self shadowedElementWithId: #'slider-value')
-        textContent: aValue printString
+TripGiftEntryView >> renderSlider: aValue max: aMax payerShare: aPayerShare [
+    | slider |
+    slider := self shadowedElementWithId: #slider.
+    slider propertyAt: 'min' put: aPayerShare printString.
+    slider propertyAt: 'max' put: aMax printString.
+    slider propertyAt: 'value' put: aValue printString.
+    (self shadowedElementWithId: #'slider-value') textContent: aValue printString.
+    (self shadowedElementWithId: #'payer-share-label') textContent: 
+        'Ma part : ' , aPayerShare printString.
+    (self shadowedElementWithId: #'max-label') textContent: 
+        'Max : ' , aMax printString
 ]

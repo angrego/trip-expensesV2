@@ -3,7 +3,8 @@ Class {
 	#superclass : 'CpModel',
 	#instVars : [
 		'participant',
-		'amount'
+		'amount',
+		'rank'
 	],
 	#category : 'TripExpenses-UI-Balance',
 	#package : 'TripExpenses-UI',
@@ -11,9 +12,11 @@ Class {
 }
 
 { #category : 'initialization' }
-TripGenerosityItemModel class >> setParticipant: aParticipant money: aMoney [
+TripGenerosityItemModel class >> setParticipant: aParticipant money: aMoney rank: aRank [
 
-	^ self new setParticipant: aParticipant money: aMoney; yourself
+	^ self new
+		  setParticipant: aParticipant money: aMoney rank:aRank;
+		  yourself
 ]
 
 { #category : 'accessing' }
@@ -24,6 +27,14 @@ TripGenerosityItemModel >> amount [
 { #category : 'accessing' }
 TripGenerosityItemModel >> currency [
 	^amount currency 
+]
+
+{ #category : 'initialization' }
+TripGenerosityItemModel >> medal [
+    rank = 1 ifTrue: [ ^ '🥇' ].
+    rank = 2 ifTrue: [ ^ '🥈' ].
+    rank = 3 ifTrue: [ ^ '🥉' ].
+    ^ ''
 ]
 
 { #category : 'accessing' }
@@ -37,7 +48,9 @@ TripGenerosityItemModel >> preferredPresenterClass [
 ]
 
 { #category : 'initialization' }
-TripGenerosityItemModel >> setParticipant: aParticipant money: aMoney [ 
-	participant:=aParticipant.
-	amount:=aMoney.
+TripGenerosityItemModel >> setParticipant: aParticipant money: aMoney rank:aRank [
+
+	participant := aParticipant.
+	rank:=aRank.
+	amount := aMoney
 ]

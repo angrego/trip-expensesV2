@@ -24,13 +24,6 @@ TripExpenseFormPresenter >> onAmountChanged: anAnnouncement [
 ]
 
 { #category : 'event handling' }
-TripExpenseFormPresenter >> onGiftAdd [
-
-self model addGiftEntry.
-    self renderAllChildViewsForModels: self model giftEntries atSlotNamed: #gifts
-]
-
-{ #category : 'event handling' }
 TripExpenseFormPresenter >> onHideExpenseForm [
 
 	self model hide.
@@ -78,39 +71,33 @@ TripExpenseFormPresenter >> renderPayerOptions [
 { #category : 'rendering' }
 TripExpenseFormPresenter >> renderView [
 
-self model justOpened ifTrue: [
-        self view reset.
-        self model clearJustOpened ].
+	self model justOpened ifTrue: [
+			self view reset.
+			self model clearJustOpened ].
 	self view
 		renderPayerOptions: (self model participantEntries collect: [ :e |
-					 Array with: e participantId with: e name ]) asArray;
-		renderErrorMessage: (self model errorMessage ifNil: [ '' ]);
-		renderAddGiftButtonEnabled:
-			(self model currentPayerId isNotNil and: [
-					 self model currentAmount isNotNil and: [
-							 self model currentAmount > 0 ] ]).
+					 Array with: e participantId with: e name ]) asArray
+		currentPayerId: self model currentPayerId locked: true;
+		renderErrorMessage: (self model errorMessage ifNil: [ '' ]).
 	self
 		renderAllChildViewsForModels: self model participantWeightModels
 		atSlotNamed: #weights.
-	self model updateShareLabels.
-	self
-		renderAllChildViewsForModels: self model giftEntries
-		atSlotNamed: #gifts
+	self model updateShareLabels
 ]
 
 { #category : 'view' }
 TripExpenseFormPresenter >> viewCreated [
-    super viewCreated.
-    self view
-        when: TripDetailAddExpenseRequested      send: #onAddExpense:      to: self;
-        when: TripDetailHideExpenseFormRequested  send: #onHideExpenseForm  to: self;
-        when: TripDetailGiftAddRequested          send: #onGiftAdd          to: self;
-        when: TripDetailGiftRemoveRequested       send: #onGiftRemove:      to: self;
-        when: TripParticipantInclusionChanged     send: #onInclusionChanged: to: self;
-        when: TripParticipantWeightChanged        send: #onWeightChanged:   to: self;
-        when: TripExpensePayerChanged             send: #onPayerChanged:    to: self;
-        when: TripExpenseAmountChanged            send: #onAmountChanged:   to: self
 
-
-
+	super viewCreated.
+	self view
+		when: TripDetailAddExpenseRequested send: #onAddExpense: to: self;
+		when: TripDetailHideExpenseFormRequested
+		send: #onHideExpenseForm
+		to: self;
+		when: TripParticipantInclusionChanged
+		send: #onInclusionChanged:
+		to: self;
+		when: TripParticipantWeightChanged send: #onWeightChanged: to: self;
+		when: TripExpensePayerChanged send: #onPayerChanged: to: self;
+		when: TripExpenseAmountChanged send: #onAmountChanged: to: self
 ]

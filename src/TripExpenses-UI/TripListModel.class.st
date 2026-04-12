@@ -26,6 +26,16 @@ TripListModel class >> onService: aTripApplicationService [
 		yourself
 ]
 
+{ #category : 'instance creation' }
+TripListModel class >> preferredPresenterClass [
+    ^ TripListPresenter
+]
+
+{ #category : 'announcing' }
+TripListModel class >> unsubscribe: aTripListPresenter [ 
+	
+]
+
 { #category : 'operations' }
 TripListModel >> createTripNamed: aName currency: aCurrency [
 	"Valide, crée le voyage via le service, puis recharge la liste."

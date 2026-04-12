@@ -10,7 +10,9 @@ Class {
 	#instVars : [
 		'service',
 		'tripListModel',
-		'currentTripDetailModel'
+		'currentTripDetailModel',
+		'loginModel',
+		'currentParticipantName'
 	],
 	#category : 'TripExpenses-UI-App',
 	#package : 'TripExpenses-UI',
@@ -24,6 +26,19 @@ TripAppModel class >> onService: aTripApplicationService [
 		yourself
 ]
 
+{ #category : 'instance creation' }
+TripAppModel class >> onService: aTripApplicationService authService: aTripAuthService [
+    ^ self new
+        initializeWithService: aTripApplicationService
+        authService: aTripAuthService;
+        yourself
+]
+
+{ #category : 'accessing' }
+TripAppModel >> currentParticipantName [
+	^ currentParticipantName
+]
+
 { #category : 'accessing' }
 TripAppModel >> currentTripDetailModel [
 	^ currentTripDetailModel
@@ -31,14 +46,47 @@ TripAppModel >> currentTripDetailModel [
 
 { #category : 'initialization' }
 TripAppModel >> initializeWithService: aTripApplicationService [
+
 	service := aTripApplicationService.
 	tripListModel := TripListModel onService: service.
-	currentTripDetailModel := nil
+	currentTripDetailModel := nil.
+	currentParticipantName := nil.
+
+]
+
+{ #category : 'initialization' }
+TripAppModel >> initializeWithService: aTripApplicationService authService: aTripAuthService [
+
+	loginModel := TripLoginModel onAuthService: aTripAuthService.
+self initializeWithService: aTripApplicationService.
+
+
+
 ]
 
 { #category : 'accessing' }
 TripAppModel >> isShowingDetail [
 	^ currentTripDetailModel isNotNil
+]
+
+{ #category : 'testing' }
+TripAppModel >> isShowingLogin [
+	^currentParticipantName isNil
+]
+
+{ #category : 'accessing' }
+TripAppModel >> loginModel [
+
+	^loginModel 
+]
+
+{ #category : 'navigation' }
+TripAppModel >> loginName: aName password: aPassword [
+
+	loginModel loginName: aName password: aPassword.
+	loginModel isAuthenticated ifFalse: [ ^ self ].
+	currentParticipantName := aName.
+	self valueChanged
 ]
 
 { #category : 'navigation' }

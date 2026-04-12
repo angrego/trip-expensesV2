@@ -7,7 +7,8 @@ Class {
 		'sliderValue',
 		'beneficiaries',
 		'allBeneficiaries',
-		'entryId'
+		'entryId',
+		'theoreticalShares'
 	],
 	#category : 'TripExpenses-UI-Gift',
 	#package : 'TripExpenses-UI',
@@ -23,11 +24,27 @@ TripGiftEntryModel class >> fromParticipant: aParticipant maxAmount: aaMaxAmount
 ]
 
 { #category : 'instance creation' }
+TripGiftEntryModel class >> fromParticipant: aParticipant maxAmount: aMaxAmount beneficiaries: aCollection theoreticalShares: aDict [
+    ^ (self maxAmount: aMaxAmount beneficiaries: aCollection theoreticalShares: aDict)
+        setFromParticipant: aParticipant;
+        yourself
+]
+
+{ #category : 'instance creation' }
 TripGiftEntryModel class >> maxAmount: aMaxAmount beneficiaries: aCollection [
 
 	^ self new
 		  setMaxAmount: aMaxAmount beneficiaries: aCollection;
 		  yourself
+]
+
+{ #category : 'instance creation' }
+TripGiftEntryModel class >> maxAmount: aMaxAmount beneficiaries: aCollection theoreticalShares: aDict [
+    ^ self new
+        setMaxAmount: aMaxAmount
+        beneficiaries: aCollection
+        theoreticalShares: aDict;
+        yourself
 ]
 
 { #category : 'accessing' }
@@ -55,7 +72,7 @@ fromParticipant ifNil: [ ^ nil ].
 ]
 
 { #category : 'accessing' }
-TripGiftEntryModel >> fromParticipant [
+TripGiftEntryModel >> fromParticipantName [
     ^ fromParticipant
 ]
 
@@ -89,11 +106,37 @@ TripGiftEntryModel >> maxAmount [
 ]
 
 { #category : 'accessing' }
+TripGiftEntryModel >> payPartFor: aParticipantId [
+
+	| beneficiary share payerShare newValue |
+	beneficiary := allBeneficiaries
+		               detect: [ :b | b participantId = aParticipantId ]
+		               ifNone: [ ^self ].
+	share := theoreticalShares
+		         at: beneficiary participant
+		         ifAbsent: [ ^ self ].
+	payerShare := self payerTheoreticalShare.
+	"Si slider est en dessous de la part du payeur, on part de là"
+	newValue := (sliderValue max: payerShare amount) + share amount.
+	self sliderValue: newValue
+]
+
+{ #category : 'calculating' }
+TripGiftEntryModel >> payerTheoreticalShare [
+theoreticalShares ifNil: [ ^ Money amount: 0 currency: '' ].
+    ^ theoreticalShares
+        at: fromParticipant
+        ifAbsent: [ Money amount: 0 currency: '' ]
+]
+
+{ #category : 'accessing' }
 TripGiftEntryModel >> setFromParticipant: aParticipant [
-    fromParticipant := aParticipant.
-    beneficiaries := allBeneficiaries
-        reject: [ :b | b participantId = aParticipant id value ].
-    self valueChanged
+
+	fromParticipant := aParticipant.
+	beneficiaries := allBeneficiaries reject: [ :b |
+		                 b participantId = aParticipant id value ].
+	sliderValue := self payerTheoreticalShare amount.
+	self valueChanged
 ]
 
 { #category : 'accessing' }
@@ -113,6 +156,19 @@ TripGiftEntryModel >> setMaxAmount: aMaxAmount beneficiaries: aCollection [
 	allBeneficiaries := aCollection collect: [ :e |
 		                    TripParticipantWeightModel fromEntry: e ].
 	beneficiaries := allBeneficiaries copy
+]
+
+{ #category : 'initialization' }
+TripGiftEntryModel >> setMaxAmount: aMaxAmount beneficiaries: aCollection theoreticalShares: aDict [
+
+	maxAmount := aMaxAmount.
+	entryId := UUID new asString.
+	sliderValue := 0.
+	fromParticipant := nil.
+	theoreticalShares := aDict.
+	allBeneficiaries := aCollection collect: [ :e |
+		                    TripGiftBeneficiaryModel fromEntry: e ].
+	beneficiaries := allBeneficiaries copy.
 ]
 
 { #category : 'accessing' }

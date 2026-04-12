@@ -21,6 +21,16 @@ TripGiftEntryPresenter >> onInclusionChanged: anAnnouncement [
 ]
 
 { #category : 'event handling' }
+TripGiftEntryPresenter >> onPayPartRequested: anAnnouncement [
+    self model payPartFor: anAnnouncement participantId
+]
+
+{ #category : 'event handling' }
+TripGiftEntryPresenter >> onRemoveGiftEntry: aGiftEntryModel [
+    self model removeGiftEntryId: aGiftEntryModel entryId
+]
+
+{ #category : 'event handling' }
 TripGiftEntryPresenter >> onRemoveRequested [
 
 	self parent onRemoveGiftEntry: self model
@@ -41,20 +51,26 @@ TripGiftEntryPresenter >> onWeightChanged: anAnnouncement [
 
 { #category : 'rendering' }
 TripGiftEntryPresenter >> renderView [
-    self view
-        renderMaxAmount: self model maxAmount;
-        renderSliderValue: self model sliderValue.
-    self
-        renderAllChildViewsForModels: self model beneficiaries
-        atSlotNamed: #beneficiaries
+
+	self view
+    renderSlider: self model sliderValue
+    max: self model maxAmount
+    payerShare: self model payerTheoreticalShare amount.
+	self
+		renderAllChildViewsForModels: self model beneficiaries
+		atSlotNamed: #beneficiaries
 ]
 
 { #category : 'view' }
 TripGiftEntryPresenter >> viewCreated [
-super viewCreated.
-    self view
-        when: TripGiftSliderChanged       send: #onSliderChanged:     to: self;
-        when: TripGiftRemoveRequested     send: #onRemoveRequested     to: self;
-        when: TripParticipantWeightChanged    send: #onWeightChanged:  to: self;
-        when: TripParticipantInclusionChanged send: #onInclusionChanged: to: self
+
+	super viewCreated.
+	self view
+		when: TripGiftSliderChanged send: #onSliderChanged: to: self;
+		when: TripGiftRemoveRequested send: #onRemoveRequested to: self;
+		when: TripParticipantWeightChanged send: #onWeightChanged: to: self;
+		when: TripGiftPayPartRequested send: #onPayPartRequested: to: self;
+		when: TripParticipantInclusionChanged
+		send: #onInclusionChanged:
+		to: self
 ]

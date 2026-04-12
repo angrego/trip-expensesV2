@@ -35,6 +35,23 @@ ExpenseCreationTest >> setUp [
 ]
 
 { #category : 'running' }
+ExpenseCreationTest >> testAddGiftAfterCreation [
+    | expense |
+    expense := self makeExpense.
+    expense addGift: (Gift from: antoine to: greg amount: (Money amount: 30 currency: 'EUR')).
+    self assert: expense gifts size equals: 1
+]
+
+{ #category : 'running' }
+ExpenseCreationTest >> testAddGiftExceedingSurplusRaisesError [
+    | expense |
+    expense := self makeExpense.
+    self should: [
+        expense addGift: (Gift from: antoine to: greg amount: (Money amount: 100 currency: 'EUR')) ]
+    raise: Error
+]
+
+{ #category : 'running' }
 ExpenseCreationTest >> testCreationAssignsId [
     self assert: self makeExpense id isNotNil
 ]

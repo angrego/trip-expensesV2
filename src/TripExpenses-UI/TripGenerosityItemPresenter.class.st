@@ -8,8 +8,10 @@ Class {
 
 { #category : 'rendering' }
 TripGenerosityItemPresenter >> renderView [
-    self view
-        renderParticipantName: self model participantName;
-        renderAmount: self model amount;
-        renderCurrency: self model currency
+
+	self view
+		renderParticipantName: self model participantName;
+		renderAmount: self model amount;
+		renderMedal: self model medal;
+		renderCurrency: self model currency
 ]

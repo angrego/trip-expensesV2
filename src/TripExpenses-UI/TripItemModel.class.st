@@ -43,6 +43,12 @@ TripItemModel class >> fromTrip: aTrip [
 		yourself
 ]
 
+{ #category : 'instance creation' }
+TripItemModel class >> preferredPresenterClass [
+
+	^ TripItemPresenter
+]
+
 { #category : 'accessing' }
 TripItemModel >> currency [
 	^ currency

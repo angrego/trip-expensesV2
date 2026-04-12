@@ -134,7 +134,7 @@ TripDetailModelV2Test >> testAddExpenseSettlementHasFromAndTo [
 	self addExpenseAmount: 60.
 
 	s := model settlements first.
-	self assert: (s fromParticipant isNotNil and: [ s toParticipantName isNotNil ])
+	self assert: (s fromParticipantName isNotNil and: [ s toParticipantName isNotNil ])
 ]
 
 { #category : 'tests - ajout dépense' }
@@ -406,6 +406,20 @@ TripDetailModelV2Test >> testShowExpenseFormClearsError [
 model errorMessage: 'une erreur'.
 	model showExpenseForm.
 	self assert: model errorMessage isNil
+]
+
+{ #category : 'tests - formulaire' }
+TripDetailModelV2Test >> testShowExpenseFormForParticipantPreselectsPayer [
+    "Alice est connectée — elle doit être pré-sélectionnée comme payeur."
+    model showExpenseFormForParticipant: 'Alice'.
+    self assert: model expenseFormModel currentPayerId equals: aliceId
+]
+
+{ #category : 'tests - formulaire' }
+TripDetailModelV2Test >> testShowExpenseFormForUnknownParticipantUsesFirst [
+    "Participant inconnu → premier participant sélectionné."
+    model showExpenseFormForParticipant: 'Inconnu'.
+    self assert: model expenseFormModel currentPayerId equals: aliceId
 ]
 
 { #category : 'tests - formulaire' }

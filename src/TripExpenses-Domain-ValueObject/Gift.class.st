@@ -94,19 +94,20 @@ Gift >> validateIn: anExpense [
         ifTrue: [ Error signal: 'Cannot gift more than your surplus' ]
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'validation' }
 Gift >> validateIn: anExpense givenByPayer: givenByPayer [
-    | alreadyGiven surplus | 
-   amount amount <= 0
-        ifTrue: [ Error signal: 'Gift amount must be positive' ].
-    (anExpense payers includes: from)
-        ifFalse: [ Error signal: from name , ' ne paie rien dans cette dépense' ].
-    (anExpense splitRule includes: to)
-        ifFalse: [ Error signal: to name , ' n''est pas dans le split' ].
-
-    alreadyGiven := givenByPayer at: from ifAbsent: [ 0 ].
-    surplus := (anExpense rawBalanceFor: from) amount.
-    (amount amount + alreadyGiven) > surplus
-        ifTrue: [ Error signal: from name , ' ne peut pas offrir plus que son surplus' ].
-    givenByPayer at: from put: alreadyGiven + amount amount
+    | alreadyGiven limit |
+    amount amount <= 0 ifTrue: [
+        Error signal: 'Gift amount must be positive' ].
+    (anExpense splitRule includes: to) ifFalse: [
+        Error signal: to name , ' n''est pas dans le split' ].
+    alreadyGiven := givenByPayer
+        at: from
+        ifAbsent: [ Money amount: 0 currency: amount currency ].
+    limit := (anExpense payers includes: from)
+        ifTrue:  [ anExpense rawBalanceFor: from ]
+        ifFalse: [ anExpense totalAmount ].
+    amount + alreadyGiven > limit ifTrue: [
+        Error signal: from name , ' ne peut pas offrir plus que son surplus' ].
+    givenByPayer at: from put: alreadyGiven + amount
 ]

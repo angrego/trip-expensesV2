@@ -8,8 +8,9 @@ Class {
 
 { #category : 'web resources' }
 TripParticipantWeightView class >> style [
-    <webResource: #css>
-    ^ '
+
+	<webResource: #css>
+	^ '
     :host { display: block; }
     .weight-row { display: flex; align-items: center; gap: .75rem; margin: .4rem 0; }
     .weight-row input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; }
@@ -23,6 +24,16 @@ TripParticipantWeightView class >> style [
         text-align: center;
     }
     .weight-input:disabled { background: #f0f0f0; color: #aaa; }
+.btn-pay-part {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: .85rem;
+    padding: .2rem .3rem;
+    border-radius: 4px;
+    opacity: 0.6;
+}
+.btn-pay-part:hover { opacity: 1; }
     '
 ]
 
@@ -31,12 +42,13 @@ TripParticipantWeightView class >> template [
 
 	<webResource: #html>
 	^ '
-    <div class="weight-row">
-        <input id="checkbox" type="checkbox">
-        <span id="name" class="participant-name"></span>
-        <input id="weight" type="number" min="1" class="weight-input">
-<span id="share" class="share-label"></span>
-    </div>
+<div class="weight-row">
+    <input id="checkbox" type="checkbox">
+    <span id="name" class="participant-name"></span>
+    <input id="weight" type="number" min="1" class="weight-input">
+    <span id="share" class="share-label"></span>
+
+</div>
     '
 ]
 
@@ -52,6 +64,12 @@ TripParticipantWeightView >> handleInclusionChanged [
 ]
 
 { #category : 'event handling' }
+TripParticipantWeightView >> handlePayPart [
+    self serverAnnounce: (TripGiftPayPartRequested
+        participantId: ((self shadowedElementWithId: #checkbox) attributeAt: 'data-pid'))
+]
+
+{ #category : 'event handling' }
 TripParticipantWeightView >> handleWeightChanged [
     | w |
     w := (self shadowedElementWithId: #weight) propertyAt: 'value'.
@@ -63,15 +81,16 @@ TripParticipantWeightView >> handleWeightChanged [
 
 { #category : 'initialization' }
 TripParticipantWeightView >> initializeShadowRoot [
-    super initializeShadowRoot.
-    (self shadowedElementWithId: #checkbox)
-        when: CpChangeEvent
-        send: #handleInclusionChanged
-        to: self.
-    (self shadowedElementWithId: #weight)
-        when: CpInputEvent
-        send: #handleWeightChanged
-        to: self
+
+	super initializeShadowRoot.
+	(self shadowedElementWithId: #checkbox)
+		when: CpChangeEvent
+		send: #handleInclusionChanged
+		to: self.
+	(self shadowedElementWithId: #weight)
+		when: CpInputEvent
+		send: #handleWeightChanged
+		to: self.
 ]
 
 { #category : 'rendering' }

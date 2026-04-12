@@ -67,7 +67,6 @@ TripExpensesServerApp >> installAnnouncements [
 		installClass: TripAddParticipantShowFormRequested;
 		installClass: TripAddParticipantHideFormRequested;
 		installClass: TripAddParticipantRequested;
-		installClass: TripDetailGiftAddRequested;
 		installClass: TripDetailGiftRemoveRequested;
 		installClass: TripExpensePayerChanged;
 		installClass: TripExpenseAmountChanged;
@@ -76,7 +75,12 @@ TripExpensesServerApp >> installAnnouncements [
 		installClass: TripGiftWeightChanged;
 		installClass: TripGiftRemoveRequested;
 		installClass: TripParticipantWeightChanged;
-		installClass: TripParticipantInclusionChanged
+		installClass: TripParticipantInclusionChanged;
+		installClass: TripGiftPayPartRequested;
+		installClass: TripLoginRequested;
+		installClass: TripExpenseGiftAddRequested;
+		installClass: TripExpenseGiftFormAddRequested;
+		installClass: TripExpenseGiftFormHideRequested
 ]
 
 { #category : 'installing' }
@@ -97,5 +101,9 @@ TripExpensesServerApp >> installViews [
 		installClass: TripExpenseFormView;
 		installClass: TripParticipantWeightView;
 		installClass: TripGenerosityView;
-installClass: TripGenerosityItemView.
+		installClass: TripGenerosityItemView;
+		installClass: TripGiftBeneficiaryView;
+		installClass: TripGiftPayPartRequested;
+		installClass: TripLoginView;
+		installClass: TripExpenseGiftFormView
 ]

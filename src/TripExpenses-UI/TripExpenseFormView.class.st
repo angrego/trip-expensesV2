@@ -12,6 +12,8 @@ TripExpenseFormView class >> style [
 	<webResource: #css>
 	^ '
     :host { display: block; }
+.error-banner { background: #fee; border: 1px solid #f99; border-radius: 8px; padding: .75rem; margin-bottom: 1rem; color: #900; }
+
     .expense-form { border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
     .expense-form h3 { margin: 0 0 1rem; font-size: 1rem; }
     .input  { display: block; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; padding: .5rem; margin: .25rem 0 .75rem; font-size: 1rem; }
@@ -53,13 +55,11 @@ TripExpenseFormView class >> template [
         <select id="expense-payer" class="select"></select>
         <label>Repartition</label>
         <slot name="weights"></slot>
-        <div class="section-subtitle">Cadeaux</div>
-        <slot name="gifts"></slot>
-        <button id="btn-add-gift" class="btn-secondary btn-small">+ Ajouter un cadeau</button>
-        <div class="form-actions">
-            <button id="btn-add" class="btn-primary">Ajouter</button>
-            <button id="btn-cancel" class="btn-secondary">Annuler</button>
-        </div>
+    <div class="form-actions">
+        <button id="btn-add" class="btn-primary">Ajouter</button>
+        <button id="btn-cancel" class="btn-secondary">Annuler</button>
+    </div>
+       
     </div>
     '
 ]
@@ -104,26 +104,24 @@ TripExpenseFormView >> handlePayerChanged [
 
 { #category : 'initialization' }
 TripExpenseFormView >> initializeShadowRoot [
-    super initializeShadowRoot.
-    (self shadowedElementWithId: #'btn-add')
-        when: CpClickEvent basicPrimary send: #handleAddExpense to: self.
-    (self shadowedElementWithId: #'btn-cancel')
-        when: CpClickEvent basicPrimary send: #handleHideForm to: self.
-(self shadowedElementWithId: #'expense-payer')
-        when: CpChangeEvent send: #handlePayerChanged to: self.
-(self shadowedElementWithId: #'btn-add-gift')
-    when: CpClickEvent basicPrimary send: #handleAddGift to: self.
-    (self shadowedElementWithId: #'expense-amount')
-        when: CpInputEvent send: #handleAmountChanged to: self
-]
 
-{ #category : 'view' }
-TripExpenseFormView >> renderAddGiftButtonEnabled: aBoolean [
-    | btn |
-    btn := self shadowedElementWithId: #'btn-add-gift'.
-    aBoolean
-        ifTrue:  [ btn removeAttributeAt: 'disabled' ]
-        ifFalse: [ btn attributeAt: 'disabled' put: '' ]
+	super initializeShadowRoot.
+	(self shadowedElementWithId: #'btn-add')
+		when: CpClickEvent basicPrimary
+		send: #handleAddExpense
+		to: self.
+	(self shadowedElementWithId: #'btn-cancel')
+		when: CpClickEvent basicPrimary
+		send: #handleHideForm
+		to: self.
+	(self shadowedElementWithId: #'expense-payer')
+		when: CpChangeEvent
+		send: #handlePayerChanged
+		to: self.
+	(self shadowedElementWithId: #'expense-amount')
+		when: CpInputEvent
+		send: #handleAmountChanged
+		to: self
 ]
 
 { #category : 'rendering' }
@@ -156,6 +154,44 @@ TripExpenseFormView >> renderPayerOptions: aCollectionOfArrays [
 	select propertyAt: 'innerHTML' put: html.
 	currentValue isEmpty ifFalse: [
 		select propertyAt: 'value' put: currentValue ]
+]
+
+{ #category : 'rendering' }
+TripExpenseFormView >> renderPayerOptions: aCollectionOfArrays currentPayerId: aPayerId locked: aBoolean [
+
+	| select html |
+	select := self shadowedElementWithId: #'expense-payer'.
+	html := String streamContents: [ :s |
+			        aCollectionOfArrays do: [ :arr |
+					        s
+						        nextPutAll: '<option value="';
+						        nextPutAll: arr first;
+						        nextPutAll: '">';
+						        nextPutAll: (arr at: 2);
+						        nextPutAll: '</option>' ] ].
+	select propertyAt: 'innerHTML' put: html.
+	aPayerId ifNotNil: [ select propertyAt: 'value' put: aPayerId ].
+	aBoolean
+		ifTrue: [ select attributeAt: 'disabled' put: '' ]
+		ifFalse: [ select removeAttributeAt: 'disabled' ]
+]
+
+{ #category : 'rendering' }
+TripExpenseFormView >> renderPayerOptions: aCollectionOfArrays locked: aBoolean [
+    | select html |
+    select := self shadowedElementWithId: #'expense-payer'.
+    html := String streamContents: [ :s |
+        aCollectionOfArrays do: [ :arr |
+            s
+                nextPutAll: '<option value="';
+                nextPutAll: (arr at: 1);
+                nextPutAll: '">';
+                nextPutAll: (arr at: 2);
+                nextPutAll: '</option>' ] ].
+    select propertyAt: 'innerHTML' put: html.
+    aBoolean
+        ifTrue:  [ select attributeAt: 'disabled' put: '' ]
+        ifFalse: [ select removeAttributeAt: 'disabled' ]
 ]
 
 { #category : 'rendering' }

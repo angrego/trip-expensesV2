@@ -4,7 +4,6 @@ Class {
 	#instVars : [
 		'alice',
 		'bob',
-		'expense',
 		'splitRule'
 	],
 	#category : 'TripExpenses-Domain-Tests-TripExpenses-Domain-Tests-Rule',
@@ -101,17 +100,22 @@ GiftTest >> testNegativeAmountRaisesError [
 ]
 
 { #category : 'running' }
-GiftTest >> testNonPayerCannotGift [
-    "Bob ne paie rien → ne peut pas faire de cadeau"
-    self should: [
-        Expense
-            description: 'Test'
-            totalAmount: (Money amount: 100 currency: 'EUR')
-            payments: { Payment participant: alice amount: (Money amount: 100 currency: 'EUR') }
-            splitRule: splitRule
-            gifts: { Gift from: bob to: alice amount: (Money amount: 10 currency: 'EUR') }
-            date: Date today
-    ] raise: Error
+GiftTest >> testNonPayerCanGift [
+	"Bob ne paie rien mais peut offrir un cadeau à Alice"
+
+	Expense
+		description: 'Test'
+		totalAmount: (Money amount: 100 currency: 'EUR')
+		payments: { (Payment
+				 participant: alice
+				 amount: (Money amount: 100 currency: 'EUR')) }
+		splitRule: splitRule
+		gifts:
+		{ (Gift
+			 from: bob
+			 to: alice
+			 amount: (Money amount: 10 currency: 'EUR')) }
+		date: Date today
 ]
 
 { #category : 'running' }

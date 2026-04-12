@@ -55,6 +55,18 @@ Expense class >> validatePayments: payments totalAmount: total [
             ') do not match total (' , total amount printString , ')' ]
 ]
 
+{ #category : 'accessing' }
+Expense >> addGift: aGift [
+    | givenByPayer |
+    givenByPayer := Dictionary new.
+    gifts do: [ :g | 
+        givenByPayer 
+            at: g from 
+            put: (givenByPayer at: g from ifAbsent: [ Money amount: 0 currency: totalAmount currency ]) + g amount ].
+    aGift validateIn: self givenByPayer: givenByPayer.
+    gifts add: aGift
+]
+
 { #category : 'adding' }
 Expense >> addTag: aString [ 
 	tags add: aString 

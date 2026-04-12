@@ -20,8 +20,19 @@ Class {
 
 { #category : 'running' }
 TripExpensesAppNavigationTest >> setUp [
-	service := TripApplicationService withRepository: InMemoryTripRepository new.
-	app     := TripExpensesApplication onService: service
+
+	| authService |
+	service := TripApplicationService withRepository:
+		           InMemoryTripRepository new.
+	authService := TripAuthService new.
+    authService addCredential: 'Alice' password: 'alice123'.
+    app := TripExpensesApplication onService: service authService: authService
+]
+
+{ #category : 'tests - etat initial' }
+TripExpensesAppNavigationTest >> testAfterLoginShowingList [
+    app applicationModel loginName: 'Alice' password: 'alice123'.
+    self deny: app applicationModel isShowingLogin
 ]
 
 { #category : 'tests - applicationModel' }
@@ -66,6 +77,12 @@ TripExpensesAppNavigationTest >> testApplicationModelStableAfterNavigateToTrip [
 ]
 
 { #category : 'tests - etat initial' }
+TripExpensesAppNavigationTest >> testFailedLoginStaysOnLogin [
+    app applicationModel loginName: 'Alice' password: 'wrong'.
+    self assert: app applicationModel isShowingLogin
+]
+
+{ #category : 'tests - etat initial' }
 TripExpensesAppNavigationTest >> testInitialCurrentTripDetailModelIsNil [
 	self assert: app applicationModel currentTripDetailModel isNil
 ]
@@ -79,6 +96,17 @@ TripExpensesAppNavigationTest >> testInitialTripListModelIsNotNil [
 { #category : 'tests - etat initial' }
 TripExpensesAppNavigationTest >> testInitiallyNotShowingDetail [
 	self deny: app applicationModel isShowingDetail
+]
+
+{ #category : 'tests - etat initial' }
+TripExpensesAppNavigationTest >> testInitiallyShowingLogin [
+    self assert: app applicationModel isShowingLogin
+]
+
+{ #category : 'tests - etat initial' }
+TripExpensesAppNavigationTest >> testLoginStoresCurrentParticipantName [
+    app applicationModel loginName: 'Alice' password: 'alice123'.
+    self assert: app applicationModel currentParticipantName equals: 'Alice'
 ]
 
 { #category : 'tests - navigateToList' }

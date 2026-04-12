@@ -36,7 +36,7 @@ TripSettlementItemModel >> currency [
 ]
 
 { #category : 'accessing' }
-TripSettlementItemModel >> fromParticipant [
+TripSettlementItemModel >> fromParticipantName [
 
 	^ fromParticipant name
 ]

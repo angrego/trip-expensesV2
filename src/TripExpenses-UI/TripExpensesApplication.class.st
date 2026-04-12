@@ -27,6 +27,16 @@ TripExpensesApplication class >> app [
 ]
 
 { #category : 'instance creation' }
+TripExpensesApplication class >> authService [
+    | auth |
+    auth := TripAuthService new.
+    auth addCredential: 'Greg'    password: 'greg123'.
+    auth addCredential: 'Antoine' password: 'antoine123'.
+    auth addCredential: 'Malvina' password: 'malvina123'.
+    ^ auth
+]
+
+{ #category : 'instance creation' }
 TripExpensesApplication class >> createRepository [
 
 	| repo service trip malvina greg antoine splitRule exp |
@@ -64,6 +74,15 @@ TripExpensesApplication class >> onService: aTripApplicationService [
 ]
 
 { #category : 'instance creation' }
+TripExpensesApplication class >> onService: aTripApplicationService authService: aTripAuthService [
+
+	^ self basicNew
+		  initializeWithService: aTripApplicationService
+		authService: aTripAuthService;
+		  yourself
+]
+
+{ #category : 'instance creation' }
 TripExpensesApplication class >> repository [
 
 	Repository ifNil: [ Repository := self createRepository ].
@@ -82,15 +101,36 @@ TripExpensesApplication >> applicationModel [
 ]
 
 { #category : 'navigation' }
+TripExpensesApplication >> currentParticipantName [
+    ^ appModel currentParticipantName
+]
+
+{ #category : 'initialization' }
 TripExpensesApplication >> initialize [
+
     super initialize.
-    appModel := TripAppModel onService:
-        (TripApplicationService withRepository: self class repository)
+    appModel := TripAppModel
+        onService: (TripApplicationService withRepository: self class repository)
+        authService: self class authService
 ]
 
 { #category : 'initialization' }
 TripExpensesApplication >> initializeWithService: aTripApplicationService [
 	appModel := TripAppModel onService: aTripApplicationService
+]
+
+{ #category : 'initialization' }
+TripExpensesApplication >> initializeWithService: aTripApplicationService authService: aTripAuthService [
+    appModel := TripAppModel
+        onService: aTripApplicationService
+        authService: aTripAuthService
+]
+
+{ #category : 'navigation' }
+TripExpensesApplication >> load [
+	super load.
+
+	self inspect
 ]
 
 { #category : 'navigation' }

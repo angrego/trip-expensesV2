@@ -28,6 +28,17 @@ TripApplicationService >> addExpense: anExpense toTrip: aTripId [
 ]
 
 { #category : 'accessing' }
+TripApplicationService >> addGift: aGift toExpense: anExpenseId inTrip: aTripId [
+    | trip expense |
+    trip := repository findById: aTripId.
+    expense := trip expenses
+        detect: [ :e | e id = anExpenseId ]
+        ifNone: [ Error signal: 'Expense not found: ' , anExpenseId ].
+    expense addGift: aGift.
+    repository save: trip
+]
+
+{ #category : 'accessing' }
 TripApplicationService >> addParticipant: aParticipant toTrip: aTripId [
 
 	| trip |

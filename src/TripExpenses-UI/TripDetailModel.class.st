@@ -18,7 +18,8 @@ Class {
 		'errorMessage',
 		'addParticipantModel',
 		'expenseFormModel',
-		'generosityModel'
+		'generosityModel',
+		'currentExpenseGiftFormModel'
 	],
 	#category : 'TripExpenses-UI-TripDetail',
 	#package : 'TripExpenses-UI',
@@ -80,6 +81,11 @@ TripDetailModel >> balances [
 { #category : 'accessing' }
 TripDetailModel >> currency [
 	^ currency
+]
+
+{ #category : 'accessing' }
+TripDetailModel >> currentExpenseGiftFormModel [
+    ^ currentExpenseGiftFormModel
 ]
 
 { #category : 'accessing' }
@@ -238,6 +244,24 @@ TripDetailModel >> showExpenseForm [
 
 expenseFormModel show.
     errorMessage := nil.
+    self valueChanged
+]
+
+{ #category : 'actions' }
+TripDetailModel >> showExpenseFormForParticipant: aParticipantName [
+    expenseFormModel showForParticipant: aParticipantName.
+    errorMessage := nil.
+    self valueChanged
+]
+
+{ #category : 'accessing' }
+TripDetailModel >> showGiftFormForExpense: anExpenseId currentParticipantName: aName [
+    currentExpenseGiftFormModel := TripExpenseGiftFormModel
+        onService: service
+        tripId: tripId
+        expenseId: anExpenseId
+        currentParticipantName: aName.
+    currentExpenseGiftFormModel show.
     self valueChanged
 ]
 
