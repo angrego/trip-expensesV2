@@ -48,6 +48,7 @@ TripDetailModelV2Test >> addExpenseAmount: anAmount weights: aPairCollection [
 TripDetailModelV2Test >> setUp [
 
 	| trip alice bob |
+super setUp .
 	service := TripApplicationService withRepository:
 		           InMemoryTripRepository new.
 	trip := service createTrip: 'Vacances' currency: 'EUR'.

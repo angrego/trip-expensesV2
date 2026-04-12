@@ -91,18 +91,6 @@ TripDetailModel >> hideExpenseForm [
     self valueChanged
 ]
 
-{ #category : 'initialization' }
-TripDetailModel >> initialize [
-
-	super initialize.
-	errorMessage := nil.
-	addParticipantModel := nil.
-	expenseFormModel := nil.
-	balanceModel := nil.
-	expenseListModel := nil.
-	 participantListModel := nil
-]
-
 { #category : 'operations' }
 TripDetailModel >> loadTrip [
     | trip |
@@ -114,9 +102,9 @@ TripDetailModel >> loadTrip [
     self valueChanged
 ]
 
-{ #category : 'testing' }
+{ #category : 'presenter' }
 TripDetailModel >> preferredPresenterClass [
-	^ TripDetailPresenter
+    ^ TripDetailPresenter
 ]
 
 { #category : 'removing' }
