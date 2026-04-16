@@ -109,15 +109,11 @@ TripDetailModel >> preferredPresenterClass [
 
 { #category : 'removing' }
 TripDetailModel >> removeExpenseId: anExpenseId [
-    | expenseListModel |
-    expenseListModel := TripExpenseListModel onService: service tripId: tripId.
-    [ expenseListModel removeExpenseId: anExpenseId ]
+    [ service removeExpenseById: anExpenseId fromTrip: tripId ]
         on: Error
         do: [ :e |
             errorMessage := e messageText.
-            self valueChanged.
-            ^ self ].
-    self loadTrip
+            self valueChanged ]
 ]
 
 { #category : 'accessing' }

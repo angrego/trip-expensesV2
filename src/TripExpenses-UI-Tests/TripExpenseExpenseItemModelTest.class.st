@@ -54,6 +54,22 @@ TripExpenseExpenseItemModelTest >> testBeneficiaryNamesOmitsWeightWhenAllOne [
 ]
 
 { #category : 'tests' }
+TripExpenseExpenseItemModelTest >> testIsNotPaidWhenPartiallyPaid [
+    | expense model |
+    expense := self makePartiallyPaidExpense.
+    model := TripExpenseExpenseItemModel fromExpense: expense.
+    self deny: model isPaid
+]
+
+{ #category : 'tests' }
+TripExpenseExpenseItemModelTest >> testIsPaidWhenFullyPaid [
+    | expense model |
+    expense := self makeFullyPaidExpense.
+    model := TripExpenseExpenseItemModel fromExpense: expense.
+    self assert: model isPaid
+]
+
+{ #category : 'tests' }
 TripExpenseExpenseItemModelTest >> testPayerNameIncludesNoWeight [
 	"Le payeur n'affiche pas de poids."
 
@@ -74,4 +90,12 @@ TripExpenseExpenseItemModelTest >> testPayerNameIncludesNoWeight [
 		       date: Date today.
 	model := TripExpenseExpenseItemModel fromExpense: exp .
 	self deny: (model payerName includesSubstring: '(x')
+]
+
+{ #category : 'tests' }
+TripExpenseExpenseItemModelTest >> testRemainingAmountString [
+    | expense model |
+    expense := self makePartiallyPaidExpense.
+    model := TripExpenseExpenseItemModel fromExpense: expense.
+    self assert: model remainingAmount equals: '40'
 ]

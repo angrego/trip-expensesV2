@@ -21,11 +21,12 @@ TripExpenseGiftFormPresenter >> onHide [
 
 { #category : 'rendering' }
 TripExpenseGiftFormPresenter >> renderView [
-    self view renderErrorMessage: (self model errorMessage ifNil: [ '' ]).
-    self model isShowing ifTrue: [
-        self
-            renderChildViewForModel: self model giftEntryModel
-            atSlotNamed: #gift ]
+
+	self view renderErrorMessage: (self model errorMessage ifNil: [ '' ]).
+	self model isShowing ifTrue: [
+			self
+				renderChildViewForModel: self model giftEntryModel
+				atSlotNamed: #gift ].
 ]
 
 { #category : 'rendering' }

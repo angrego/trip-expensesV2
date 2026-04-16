@@ -54,6 +54,17 @@ TripApplicationService >> addParticipantByName: aName toTrip: aTripId [
 	^ self addParticipant: (Participant name: aName) toTrip: aTripId
 ]
 
+{ #category : 'accessing' }
+TripApplicationService >> addPayment: aPayment toExpense: anExpenseId inTrip: aTripId [
+    | trip expense |
+    trip    := repository findById: aTripId.
+    expense := trip expenses
+        detect: [ :e | e id = anExpenseId ]
+        ifNone: [ Error signal: 'Expense not found: ' , anExpenseId ].
+    expense addPayment: aPayment.
+    repository save: trip
+]
+
 { #category : 'as yet unclassified' }
 TripApplicationService >> allTrips [
 	 ^ repository findAll
@@ -90,6 +101,17 @@ TripApplicationService >> removeExpenseById: anExpenseId fromTrip: aTripId [
 	trip := repository findById: aTripId.
 	trip removeExpense: anExpenseId.
 	repository save: trip
+]
+
+{ #category : 'accessing' }
+TripApplicationService >> removePaymentFor: aParticipant fromExpense: anExpenseId inTrip: aTripId [
+    | trip expense |
+    trip    := repository findById: aTripId.
+    expense := trip expenses
+        detect: [ :e | e id = anExpenseId ]
+        ifNone: [ Error signal: 'Expense not found: ' , anExpenseId ].
+    expense removePaymentFor: aParticipant.
+    repository save: trip
 ]
 
 { #category : 'accessing' }

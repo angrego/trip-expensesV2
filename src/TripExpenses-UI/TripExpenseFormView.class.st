@@ -162,6 +162,8 @@ TripExpenseFormView >> renderPayerOptions: aCollectionOfArrays currentPayerId: a
 	| select html |
 	select := self shadowedElementWithId: #'expense-payer'.
 	html := String streamContents: [ :s |
+			        s nextPutAll:
+				        '<option value="">-- Pas encore payé --</option>'.
 			        aCollectionOfArrays do: [ :arr |
 					        s
 						        nextPutAll: '<option value="';

@@ -41,8 +41,9 @@ TripDetailPresenter >> onDeleteExpenseId: anExpenseId [
 { #category : 'event handling' }
 TripDetailPresenter >> onExpenseAdded [
 
-    self model loadTrip.
-    self loadAllSubModels
+
+	self loadAllSubModels.
+		self model loadTrip.
 ]
 
 { #category : 'event handling' }

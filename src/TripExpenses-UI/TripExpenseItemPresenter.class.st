@@ -7,11 +7,12 @@ Class {
 	#name : 'TripExpenseItemPresenter',
 	#superclass : 'CpPresenter',
 	#instVars : [
-		'giftFormModel'
+		'giftFormModel',
+		'paymentFormModel'
 	],
-	#category : 'TripExpenses-UI-Expense',
+	#category : 'TripExpenses-UI-ExpenseItem',
 	#package : 'TripExpenses-UI',
-	#tag : 'Expense'
+	#tag : 'ExpenseItem'
 }
 
 { #category : 'event handling' }
@@ -42,21 +43,41 @@ TripExpenseItemPresenter >> onGiftFormHidden [
     self renderView
 ]
 
+{ #category : 'event handling' }
+TripExpenseItemPresenter >> onPaymentRequested: anAnnouncement [
+    paymentFormModel := TripExpensePaymentFormModel
+        onService: self parent model service
+        tripId: self parent model tripId
+        expenseId: self model expenseId
+        currentParticipantName: self application currentParticipantName.
+    paymentFormModel show.
+    self renderChildViewForModel: paymentFormModel atSlotNamed: #paymentForm
+]
+
 { #category : 'rendering' }
 TripExpenseItemPresenter >> renderView [
-    self view
-        attributeAt: 'data-expense-id' put: self model expenseId;
-        renderDescription: self model description
-        amount: self model amount
-        currency: self model currency
-        date: self model date
-        payerName: self model payerName
-        beneficiaryNames: self model beneficiaryNames.
-    (giftFormModel isNotNil and: [ giftFormModel isShowing ])
-        ifTrue: [
-            self renderChildViewForModel: giftFormModel atSlotNamed: #giftForm ]
-        ifFalse: [
-            self renderAllChildViewsForModels: #() atSlotNamed: #giftForm ]
+
+	self view
+		attributeAt: 'data-expense-id' put: self model expenseId;
+		renderDescription: self model description
+		amount: self model amount
+		currency: self model currency
+		date: self model date
+		payerName: self model payerName
+		beneficiaryNames: self model beneficiaryNames.
+	(giftFormModel isNotNil and: [ giftFormModel isShowing ])
+		ifTrue: [
+		self renderChildViewForModel: giftFormModel atSlotNamed: #giftForm ]
+		ifFalse: [
+		self renderAllChildViewsForModels: #(  ) atSlotNamed: #giftForm ].
+	self view
+		renderIsPaid: self model isPaid
+		remainingAmount: self model remainingAmount
+		currency: self model currency.
+		(paymentFormModel isNotNil and: [ paymentFormModel isShowing ]) ifTrue: [
+    self renderChildViewForModel: paymentFormModel atSlotNamed: #paymentForm ]
+ifFalse: [
+    self renderAllChildViewsForModels: #() atSlotNamed: #paymentForm ]
 ]
 
 { #category : 'view' }
@@ -64,8 +85,9 @@ TripExpenseItemPresenter >> viewCreated [
 
 	super viewCreated.
 	self view
-		when: TripExpenseDeleteRequested
-		send: #onDeleteRequested
-		to: self;
-		when: TripExpenseGiftAddRequested send: #onGiftAddRequested: to: self
+		when: TripExpenseDeleteRequested send: #onDeleteRequested to: self;
+		when: TripExpensePaymentRequested send: #onPaymentRequested: to: self;
+		when: TripExpenseGiftAddRequested
+		send: #onGiftAddRequested:
+		to: self.
 ]

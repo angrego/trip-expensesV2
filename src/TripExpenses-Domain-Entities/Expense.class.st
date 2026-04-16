@@ -15,7 +15,7 @@ Class {
 	#package : 'TripExpenses-Domain-Entities'
 }
 
-{ #category : 'as yet unclassified' }
+{ #category : 'tests - creation' }
 Expense class >> description: aString totalAmount: aMoney payments: aCollectionOfPayments splitRule: aSplitRule gifts: aCollectionOfGifts date: aDate [
 
 	| expense givenByPayer |
@@ -37,25 +37,23 @@ Expense class >> description: aString totalAmount: aMoney payments: aCollectionO
 	^ expense
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'tests - creation' }
 Expense class >> validateDescription: aString [
     (aString isNil or: [ aString trim isEmpty ])
         ifTrue: [ Error signal: 'Description cannot be blank' ]
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'tests - creation' }
 Expense class >> validatePayments: payments totalAmount: total [
 
- | paid |
-    payments isEmpty
-        ifTrue: [ Error signal: 'At least one payment is required' ].
+    | paid |
+    payments isEmpty ifTrue: [ ^ self ].
     paid := payments sumNumbers: [ :p | p amount amount ].
-    paid = total amount ifFalse: [
-        Error signal: 'Payments (' , paid printString ,
-            ') do not match total (' , total amount printString , ')' ]
+    paid > total amount ifTrue: [
+        Error signal: 'Payments (' , paid printString , ') exceed total (' , total amount printString , ')' ]
 ]
 
-{ #category : 'accessing' }
+{ #category : 'adding' }
 Expense >> addGift: aGift [
     | givenByPayer |
     givenByPayer := Dictionary new.
@@ -65,6 +63,15 @@ Expense >> addGift: aGift [
             put: (givenByPayer at: g from ifAbsent: [ Money amount: 0 currency: totalAmount currency ]) + g amount ].
     aGift validateIn: self givenByPayer: givenByPayer.
     gifts add: aGift
+]
+
+{ #category : 'adding' }
+Expense >> addPayment: aPayment [
+    | paid |
+    paid := payments sumNumbers: [ :p | p amount amount ].
+    paid + aPayment amount amount > totalAmount amount ifTrue: [
+        Error signal: 'Payment exceeds remaining amount' ].
+    payments add: aPayment
 ]
 
 { #category : 'adding' }
@@ -167,7 +174,14 @@ Expense >> id: anId [
 	id:=anId 
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'accessing' }
+Expense >> isPaid [
+    | paid |
+    paid := payments sumNumbers: [ :p | p amount amount ].
+    ^ paid = totalAmount amount
+]
+
+{ #category : 'accessing' }
 Expense >> paidBy: aParticipant [ 
 	payments
         detect: [ :p | p participant = aParticipant ]
@@ -198,6 +212,19 @@ Expense >> rawBalanceFor: aParticipant [
         at: aParticipant
         ifAbsent: [ Money amount: 0 currency: totalAmount currency ].
     ^ paid - share
+]
+
+{ #category : 'accessing' }
+Expense >> remainingAmount [
+    | paid |
+    paid := payments inject: (Money amount: 0 currency: totalAmount currency)
+        into: [ :sum :p | sum + p amount ].
+    ^ totalAmount - paid
+]
+
+{ #category : 'removing' }
+Expense >> removePaymentFor: aParticipant [
+    payments := payments reject: [ :p | p participant = aParticipant ]
 ]
 
 { #category : 'accessing' }

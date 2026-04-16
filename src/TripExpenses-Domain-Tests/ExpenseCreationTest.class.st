@@ -52,6 +52,35 @@ ExpenseCreationTest >> testAddGiftExceedingSurplusRaisesError [
 ]
 
 { #category : 'running' }
+ExpenseCreationTest >> testAddPayment [
+    | expense |
+    expense := Expense
+        description: 'Resto'
+        totalAmount: (Money amount: 100 currency: 'EUR')
+        payments: { Payment participant: antoine amount: (Money amount: 60 currency: 'EUR') }
+        splitRule: splitRule
+        gifts: {}
+        date: Date today.
+    expense addPayment: (Payment participant: greg amount: (Money amount: 40 currency: 'EUR')).
+    self assert: expense isPaid
+]
+
+{ #category : 'running' }
+ExpenseCreationTest >> testAddPaymentExceedingTotalRaisesError [
+    | expense |
+    expense := Expense
+        description: 'Resto'
+        totalAmount: (Money amount: 100 currency: 'EUR')
+        payments: { Payment participant: antoine amount: (Money amount: 60 currency: 'EUR') }
+        splitRule: splitRule
+        gifts: {}
+        date: Date today.
+    self should: [
+        expense addPayment: (Payment participant: greg amount: (Money amount: 50 currency: 'EUR')) ]
+    raise: Error
+]
+
+{ #category : 'running' }
 ExpenseCreationTest >> testCreationAssignsId [
     self assert: self makeExpense id isNotNil
 ]
@@ -93,16 +122,29 @@ ExpenseCreationTest >> testCreationStoresTotalAmount [
 ]
 
 { #category : 'running' }
-ExpenseCreationTest >> testNoPaymentsRaisesError [ 
-    self should: [
-        Expense
-            description: 'Vide'
-            totalAmount: (Money amount: 100 currency: 'EUR')
-            payments: {}
-            splitRule: splitRule
-            gifts: {}
-            date: Date today
-    ] raise: Error
+ExpenseCreationTest >> testIsNotPaidWhenPartiallyPaid [
+    | expense |
+    expense := Expense
+        description: 'Resto'
+        totalAmount: (Money amount: 100 currency: 'EUR')
+        payments: { Payment participant: antoine amount: (Money amount: 60 currency: 'EUR') }
+        splitRule: splitRule
+        gifts: {}
+        date: Date today.
+    self deny: expense isPaid
+]
+
+{ #category : 'running' }
+ExpenseCreationTest >> testIsPaidWhenFullyPaid [
+    | expense |
+    expense := Expense
+        description: 'Resto'
+        totalAmount: (Money amount: 100 currency: 'EUR')
+        payments: { Payment participant: antoine amount: (Money amount: 100 currency: 'EUR') }
+        splitRule: splitRule
+        gifts: {}
+        date: Date today.
+    self assert: expense isPaid
 ]
 
 { #category : 'running' }
@@ -119,16 +161,59 @@ ExpenseCreationTest >> testOverpaymentRaisesError [
 ]
 
 { #category : 'running' }
-ExpenseCreationTest >> testPaymentsMustMatchTotal [ 
+ExpenseCreationTest >> testOverpaymentStillRaisesError [
+    "Payer plus que le total → erreur"
     self should: [
         Expense
-            description: 'Erreur'
+            description: 'Resto'
             totalAmount: (Money amount: 100 currency: 'EUR')
-            payments: { Payment participant: antoine amount: (Money amount: 60 currency: 'EUR') }
+            payments: { Payment participant: antoine amount: (Money amount: 150 currency: 'EUR') }
             splitRule: splitRule
             gifts: {}
             date: Date today
     ] raise: Error
+]
+
+{ #category : 'running' }
+ExpenseCreationTest >> testPartialPaymentIsAccepted [
+	"Bob paie 60 sur 100 — pas d'erreur"
+
+	Expense
+		description: 'Resto'
+		totalAmount: (Money amount: 100 currency: 'EUR')
+		payments: { (Payment
+				 participant: antoine
+				 amount: (Money amount: 60 currency: 'EUR')) }
+		splitRule: splitRule
+		gifts: {  }
+		date: Date today
+]
+
+{ #category : 'running' }
+ExpenseCreationTest >> testRemainingAmount [
+    | expense |
+    expense := Expense
+        description: 'Resto'
+        totalAmount: (Money amount: 100 currency: 'EUR')
+        payments: { Payment participant: antoine amount: (Money amount: 60 currency: 'EUR') }
+        splitRule: splitRule
+        gifts: {}
+        date: Date today.
+    self assert: expense remainingAmount equals: (Money amount: 40 currency: 'EUR')
+]
+
+{ #category : 'running' }
+ExpenseCreationTest >> testRemovePayment [
+    | expense |
+    expense := Expense
+        description: 'Resto'
+        totalAmount: (Money amount: 100 currency: 'EUR')
+        payments: { Payment participant: antoine amount: (Money amount: 100 currency: 'EUR') }
+        splitRule: splitRule
+        gifts: {}
+        date: Date today.
+    expense removePaymentFor: antoine.
+    self assert: expense payments isEmpty
 ]
 
 { #category : 'running' }

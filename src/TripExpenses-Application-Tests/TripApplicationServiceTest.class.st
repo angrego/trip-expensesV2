@@ -186,6 +186,29 @@ TripApplicationServiceTest >> testAddParticipantTwoTripsAreIndependent [
 	self assert: (service findTrip: t2 id) participants isEmpty
 ]
 
+{ #category : 'tests - addParticipant' }
+TripApplicationServiceTest >> testAddPaymentToExpense [
+    | trip alice bob splitRule expense |
+    trip  := service createTrip: 'Vacances' currency: 'EUR'.
+    alice := service addParticipantByName: 'Alice' toTrip: trip id.
+    bob   := service addParticipantByName: 'Bob'   toTrip: trip id.
+    splitRule := EqualSplitRule among: {
+        ParticipantWeight participant: alice.
+        ParticipantWeight participant: bob }.
+    expense := Expense
+        description: 'Resto'
+        totalAmount: (Money amount: 100 currency: 'EUR')
+        payments: { Payment participant: alice amount: (Money amount: 60 currency: 'EUR') }
+        splitRule: splitRule
+        gifts: {}
+        date: Date today.
+    service addExpense: expense toTrip: trip id.
+    service addPayment: (Payment participant: bob amount: (Money amount: 40 currency: 'EUR'))
+        toExpense: expense id
+        inTrip: trip id.
+    self assert: (service findTrip: trip id) expenses first isPaid
+]
+
 { #category : 'tests - addExpense' }
 TripApplicationServiceTest >> testAddSeveralExpenses [
 	| ctx trip expense1 expense2 reloaded |
@@ -315,6 +338,49 @@ TripApplicationServiceTest >> testFindTripReturnsCorrectTrip [
 { #category : 'tests - findTrip' }
 TripApplicationServiceTest >> testFindTripUnknownIdRaisesError [
 	self should: [ service findTrip: 'unknown-id' ] raise: Error
+]
+
+{ #category : 'tests - addParticipant' }
+TripApplicationServiceTest >> testRemovePaymentFromExpense [
+    | trip alice splitRule expense |
+    trip  := service createTrip: 'Vacances' currency: 'EUR'.
+    alice := service addParticipantByName: 'Alice' toTrip: trip id.
+    splitRule := EqualSplitRule among: {
+        ParticipantWeight participant: alice }.
+    expense := Expense
+        description: 'Resto'
+        totalAmount: (Money amount: 100 currency: 'EUR')
+        payments: { Payment participant: alice amount: (Money amount: 100 currency: 'EUR') }
+        splitRule: splitRule
+        gifts: {}
+        date: Date today.
+    service addExpense: expense toTrip: trip id.
+    service removePaymentFor: alice fromExpense: expense id inTrip: trip id.
+    self assert: (service findTrip: trip id) expenses first payments isEmpty
+]
+
+{ #category : 'tests - addExpense' }
+TripApplicationServiceTest >> testSettlementsAfterExpense [
+    | trip alice bob splitRule expense settlements |
+    trip  := service createTrip: 'Vacances' currency: 'EUR'.
+    alice := service addParticipantByName: 'Alice' toTrip: trip id.
+    bob   := service addParticipantByName: 'Bob'   toTrip: trip id.
+    splitRule := EqualSplitRule among: {
+        ParticipantWeight participant: alice.
+        ParticipantWeight participant: bob }.
+    expense := Expense
+        description: 'Resto'
+        totalAmount: (Money amount: 60 currency: 'EUR')
+        payments: { Payment participant: alice amount: (Money amount: 60 currency: 'EUR') }
+        splitRule: splitRule
+        gifts: {}
+        date: Date today.
+    service addExpense: expense toTrip: trip id.
+    settlements := service settlementsForTrip: trip id.
+    self assert: settlements size equals: 1.
+    self assert: settlements first from equals: bob.
+    self assert: settlements first to   equals: alice.
+    self assert: settlements first amount equals: (Money amount: 30 currency: 'EUR')
 ]
 
 { #category : 'tests - createTrip' }

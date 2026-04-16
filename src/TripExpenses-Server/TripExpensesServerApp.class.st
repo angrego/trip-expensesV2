@@ -80,7 +80,9 @@ TripExpensesServerApp >> installAnnouncements [
 		installClass: TripLoginRequested;
 		installClass: TripExpenseGiftAddRequested;
 		installClass: TripExpenseGiftFormAddRequested;
-		installClass: TripExpenseGiftFormHideRequested
+		installClass: TripExpenseGiftFormHideRequested;
+		installClass: TripExpensePaymentFormAddRequested;
+installClass: TripExpensePaymentFormHideRequested
 ]
 
 { #category : 'installing' }
@@ -105,5 +107,7 @@ TripExpensesServerApp >> installViews [
 		installClass: TripGiftBeneficiaryView;
 		installClass: TripGiftPayPartRequested;
 		installClass: TripLoginView;
-		installClass: TripExpenseGiftFormView
+		installClass: TripExpenseGiftFormView;
+		installClass: TripExpensePaymentFormView;
+installClass: TripExpensePaymentFormView.
 ]

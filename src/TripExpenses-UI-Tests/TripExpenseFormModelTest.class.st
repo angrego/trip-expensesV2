@@ -56,10 +56,36 @@ TripExpenseFormModelTest >> testAddExpenseWithEmptyDescriptionKeepsFormShowing [
 ]
 
 { #category : 'running' }
+TripExpenseFormModelTest >> testAddExpenseWithOptionalPayment [
+    "Si un payerId est fourni, un paiement est créé."
+    model show.
+    model setCurrentAmount: 100.
+    model addExpense: 'Resto' amount: 100 payerId: aliceId.
+    self assert: (service findTrip: tripId) expenses first payments size equals: 1
+]
+
+{ #category : 'running' }
 TripExpenseFormModelTest >> testAddExpenseWithZeroAmountKeepsFormShowing [
     model show.
     model addExpense: 'Resto' amount: 0 payerId: aliceId.
     self assert: model isShowing
+]
+
+{ #category : 'running' }
+TripExpenseFormModelTest >> testAddExpenseWithoutPayerHasNoPayments [
+    model show.
+    model setCurrentAmount: 100.
+    model addExpense: 'Resto' amount: 100 payerId: nil.
+    self assert: (service findTrip: tripId) expenses first payments isEmpty
+]
+
+{ #category : 'running' }
+TripExpenseFormModelTest >> testAddExpenseWithoutPayerIsAccepted [
+    "On peut créer une dépense sans payeur."
+    model show.
+    model setCurrentAmount: 100.
+    model addExpense: 'Resto' amount: 100 payerId: nil.
+    self assert: model errorMessage isNil
 ]
 
 { #category : 'running' }

@@ -30,22 +30,28 @@ TripExpenseFormModel class >> onService: aTripApplicationService tripId: anId [
 { #category : 'adding' }
 TripExpenseFormModel >> addExpense: aDescription amount: anAmount payerId: aPayerId [
 
-	| trip payer splitRule gifts expense |
+	| trip payer splitRule payments expense effectivePayerId|
+	effectivePayerId := (aPayerId isNil or: [ aPayerId isEmpty ])
+    ifTrue: [ nil ]
+    ifFalse: [ aPayerId ].
 	(self validateDescription: aDescription) ifFalse: [ ^ self ].
 	(self validateAmount: anAmount) ifFalse: [ ^ self ].
 	trip := service findTrip: tripId.
-	payer := self findPayer: aPayerId inTrip: trip.
-	payer ifNil: [ ^ self ].
 	splitRule := self buildSplitRuleFor: trip.
 	splitRule ifNil: [ ^ self ].
+	payments := OrderedCollection new.
+	effectivePayerId ifNotNil: [
+			payer := self findPayer: effectivePayerId inTrip: trip.
+			payer ifNil: [ ^ self ].
+			payments add: (Payment
+					 participant: payer
+					 amount: (Money amount: anAmount currency: currency)) ].
 	[
-		gifts := #().
 		expense := self
 			           buildExpense: aDescription
 			           amount: anAmount
-			           payer: payer
-			           splitRule: splitRule
-			           gifts: gifts.
+			           payments: payments
+			           splitRule: splitRule.
 		service addExpense: expense toTrip: tripId.
 		self hide ]
 		on: Error
@@ -62,6 +68,17 @@ TripExpenseFormModel >> buildExpense: aDescription amount: anAmount payer: aPaye
         payments: { Payment participant: aPayer amount: (Money amount: anAmount currency: currency) }
         splitRule: aSplitRule
         gifts: someGifts
+        date: Date today
+]
+
+{ #category : 'adding' }
+TripExpenseFormModel >> buildExpense: aDescription amount: anAmount payments: somePayments splitRule: aSplitRule [
+    ^ Expense
+        description: aDescription trim
+        totalAmount: (Money amount: anAmount currency: currency)
+        payments: somePayments
+        splitRule: aSplitRule
+        gifts: #()
         date: Date today
 ]
 

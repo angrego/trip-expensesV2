@@ -1,15 +1,19 @@
 Class {
 	#name : 'TripExpenseItemView',
 	#superclass : 'CpView',
-	#category : 'TripExpenses-UI-Expense',
+	#instVars : [
+		'paymentFormModel'
+	],
+	#category : 'TripExpenses-UI-ExpenseItem',
 	#package : 'TripExpenses-UI',
-	#tag : 'Expense'
+	#tag : 'ExpenseItem'
 }
 
 { #category : 'web resources' }
 TripExpenseItemView class >> style [
-    <webResource: #css>
-    ^ '
+
+	<webResource: #css>
+	^ '
     :host { display: block; margin-bottom: .75rem; }
     .expense-card {
         border: 1px solid #e8e8ff;
@@ -74,29 +78,54 @@ TripExpenseItemView class >> style [
     }
     .btn-gift:hover { background: #e0d8ff; }
     .btn-delete:hover { background: #ffe0e0; }
+.remaining-banner {
+    background: #fff8e6;
+    border: 1px solid #f5c842;
+    border-radius: 8px;
+    padding: .4rem .75rem;
+    font-size: .85rem;
+    color: #8a6500;
+    margin-bottom: .5rem;
+}
+.btn-pay {
+    flex: 1;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    padding: .4rem .75rem;
+    cursor: pointer;
+    font-size: .85rem;
+}
+.btn-pay:hover { background: #c8e6c9; }
     '
 ]
 
 { #category : 'web resources' }
 TripExpenseItemView class >> template [
-    <webResource: #html>
-    ^ '
-    <div class="expense-card">
-        <div class="expense-top">
-            <span class="expense-desc" id="desc"></span>
-            <span class="expense-amount" id="amount"></span>
-        </div>
-        <div class="expense-meta">
-            <span class="expense-payer" id="payer"></span>
-            <span class="expense-date" id="date"></span>
-        </div>
-        <div class="expense-beneficiaries" id="beneficiaries"></div>
-        <div class="expense-actions">
-            <button id="btn-gift" class="btn-gift">🎁 Cadeau</button>
-            <button id="btn-delete" class="btn-delete">✕ Supprimer</button>
-        </div>
+
+	<webResource: #html>
+	^ '
+   <div class="expense-card">
+    <div class="expense-top">
+        <span class="expense-desc" id="desc"></span>
+        <span class="expense-amount" id="amount"></span>
     </div>
-    <slot name="giftForm"></slot>'
+    <div class="expense-meta">
+        <span class="expense-payer" id="payer"></span>
+        <span class="expense-date" id="date"></span>
+    </div>
+    <div class="expense-beneficiaries" id="beneficiaries"></div>
+    <div id="remaining-banner" class="remaining-banner" style="display:none"></div>
+    <div class="expense-actions">
+        <button id="btn-pay" class="btn-pay">💰 J''ai payé</button>
+        <button id="btn-gift" class="btn-gift">🎁 Cadeau</button>
+        <button id="btn-delete" class="btn-delete">✕</button>
+    </div>
+</div>
+<slot name="giftForm"></slot>
+<slot name="paymentForm"></slot>
+'
 ]
 
 { #category : 'event handling' }
@@ -115,6 +144,12 @@ TripExpenseItemView >> handleDelete [
 ]
 
 { #category : 'rendering' }
+TripExpenseItemView >> handlePay [
+    self serverAnnounce: (TripExpensePaymentRequested
+        expenseId: (self attributeAt: 'data-expense-id'))
+]
+
+{ #category : 'rendering' }
 TripExpenseItemView >> initializeShadowRoot [
 
 	super initializeShadowRoot.
@@ -122,10 +157,25 @@ TripExpenseItemView >> initializeShadowRoot [
 		when: CpClickEvent basicPrimary
 		send: #handleDelete
 		to: self.
-		(self shadowedElementWithId: #'btn-gift')
+	(self shadowedElementWithId: #'btn-gift')
+		when: CpClickEvent basicPrimary
+		send: #handleAddGift
+		to: self.
+		(self shadowedElementWithId: #'btn-pay')
     when: CpClickEvent basicPrimary
-    send: #handleAddGift
+    send: #handlePay
     to: self.
+]
+
+{ #category : 'event handling' }
+TripExpenseItemView >> onPaymentAdded [
+    self parent onExpenseAdded
+]
+
+{ #category : 'event handling' }
+TripExpenseItemView >> onPaymentFormHidden [
+    paymentFormModel := nil.
+    self renderView
 ]
 
 { #category : 'rendering' }
@@ -138,4 +188,15 @@ TripExpenseItemView >> renderDescription: aDesc amount: anAmount currency: aCurr
 		aBeneficiaryNames.
 	(self shadowedElementWithId: #amount) textContent:
 		anAmount , ' ' , aCurrency
+]
+
+{ #category : 'rendering' }
+TripExpenseItemView >> renderIsPaid: aBoolean remainingAmount: anAmount currency: aCurrency [
+    | banner |
+    banner := self shadowedElementWithId: #'remaining-banner'.
+    aBoolean
+        ifTrue:  [ banner style: 'display:none' ]
+        ifFalse: [
+            banner style: 'display:block'.
+            banner textContent: 'Reste à payer : ' , anAmount , ' ' , aCurrency ]
 ]

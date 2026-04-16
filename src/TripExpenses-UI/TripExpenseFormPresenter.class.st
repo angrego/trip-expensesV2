@@ -8,13 +8,14 @@ Class {
 
 { #category : 'event handling' }
 TripExpenseFormPresenter >> onAddExpense: anAnnouncement [
-    | amount |
-    amount := anAnnouncement amountString asNumber.
-    self model
-        addExpense: anAnnouncement description
-        amount: amount
-        payerId: anAnnouncement payerId.
-    self model isShowing ifFalse: [ self parent onExpenseAdded ]
+
+	| amount |
+	amount := anAnnouncement amountString asNumber.
+	self model
+		addExpense: anAnnouncement description
+		amount: amount
+		payerId: anAnnouncement payerId.
+	self model isShowing ifFalse: [ self parent onExpenseAdded ]
 ]
 
 { #category : 'event handling' }
@@ -77,7 +78,7 @@ TripExpenseFormPresenter >> renderView [
 	self view
 		renderPayerOptions: (self model participantEntries collect: [ :e |
 					 Array with: e participantId with: e name ]) asArray
-		currentPayerId: self model currentPayerId locked: true;
+		currentPayerId: self model currentPayerId locked: false;
 		renderErrorMessage: (self model errorMessage ifNil: [ '' ]).
 	self
 		renderAllChildViewsForModels: self model participantWeightModels
